@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 #[cfg(not(target_os = "windows"))]
@@ -76,7 +76,7 @@ const HTML: &str = r#"
 "#;
 
 async fn subscribe(query: web::Query<Query>) -> impl Responder {
-    let mut text: Result<String> = Ok(String::new());
+    let mut text: Result<String> = Err(anyhow!("Path error, please check Token parameter."));
     if let Some(u) = &query.subscribe {
         text = add_subscribe(u.to_string()).await;
     } else if let Some(u) = &query.subscribe_to {
@@ -96,6 +96,9 @@ async fn subscribe(query: web::Query<Query>) -> impl Responder {
             let msg = format!("Submitted Successfully: {}.", t);
             html = html.replace("Kali-Team", &msg);
             println!("{}", msg);
+            tokio::task::spawn(async move {
+                update().await;
+            });
         }
         Err(e) => {
             let msg = format!("Submitted Failed: {}.", e);
@@ -103,9 +106,6 @@ async fn subscribe(query: web::Query<Query>) -> impl Responder {
             println!("{}", msg);
         }
     }
-    tokio::task::spawn(async move {
-        update().await;
-    });
     HttpResponse::Ok()
         .content_type(ContentType::html())
         .body(html)
