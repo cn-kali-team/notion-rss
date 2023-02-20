@@ -49,7 +49,6 @@ async fn main() -> Result<()> {
         std::process::exit(0);
     } else {
         update().await;
-        println!("Complete all updates.");
     }
     Ok(())
 }

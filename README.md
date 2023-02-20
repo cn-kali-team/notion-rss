@@ -97,7 +97,6 @@ https://www.exploit-db.com/rss.xml
 ➜ notion-rss --notion-token secret_xxx --source-id 8a49af585aa844208ee085b3814e1a0d --archive-id e8f7df1fe33242a88adad7bdd793cd1e --file /home/kali-team/feed.txt
 Update succeeded:  [Title:三米前有蕉皮]  [Link:Some("https://blog.kali-team.cn/index.xml")]  [Status:Done] 
 Update succeeded:  [Title:exploit-db]  [Link:Some("https://www.exploit-db.com/rss.xml")]  [Status:Done]
-Complete all updates.
 ```
 
 ### Deleted old archive

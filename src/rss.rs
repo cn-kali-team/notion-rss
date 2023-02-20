@@ -43,16 +43,25 @@ pub async fn update() {
     let source_handle = tokio::task::spawn(async move {
         let mut start_pages: Option<PagingCursor> = None;
         loop {
-            if let Ok(Object::List { list }) = get_source(&start_pages).await {
-                start_pages = list.next_cursor;
-                for pages in list.results {
-                    if let Object::Page { page, .. } = pages {
-                        page_sender
-                            .start_send(SourcePage::from_page(&page))
-                            .unwrap_or_default();
+            match get_source(&start_pages).await {
+                Ok(Object::List { list }) => {
+                    start_pages = list.next_cursor;
+                    for pages in list.results {
+                        if let Object::Page { page, .. } = pages {
+                            page_sender
+                                .start_send(SourcePage::from_page(&page))
+                                .unwrap_or_default();
+                        }
+                    }
+                    if !list.has_more {
+                        break;
                     }
                 }
-                if !list.has_more {
+                Err(e) => {
+                    println!("Get Source Error: {}", e);
+                    break;
+                }
+                _ => {
                     break;
                 }
             }
@@ -175,16 +184,25 @@ pub async fn deleted() {
     let archive_handle = tokio::task::spawn(async move {
         let mut start_pages: Option<PagingCursor> = None;
         loop {
-            if let Ok(Object::List { list }) = get_deleted_page(&start_pages).await {
-                start_pages = list.next_cursor;
-                for pages in list.results {
-                    if let Object::Page { page, .. } = pages {
-                        page_sender
-                            .start_send(ArchivePage::from_page(&page))
-                            .unwrap_or_default();
+            match get_deleted_page(&start_pages).await {
+                Ok(Object::List { list }) => {
+                    start_pages = list.next_cursor;
+                    for pages in list.results {
+                        if let Object::Page { page, .. } = pages {
+                            page_sender
+                                .start_send(ArchivePage::from_page(&page))
+                                .unwrap_or_default();
+                        }
+                    }
+                    if !list.has_more {
+                        break;
                     }
                 }
-                if !list.has_more {
+                Err(e) => {
+                    println!("Get Deleted Page Error: {}", e);
+                    break;
+                }
+                _ => {
                     break;
                 }
             }
