@@ -1,4 +1,4 @@
-[中文简体](./README.md)
+[中文简体](https://blog.kali-team.cn/Notion-Rss-af7ee0e285db424e8f8349df9a92291e)
 
 # NotionRss
 
