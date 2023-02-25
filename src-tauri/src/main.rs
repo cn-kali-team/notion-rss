@@ -1,7 +1,13 @@
+#![cfg_attr(
+all(not(debug_assertions), target_os = "windows"),
+windows_subsystem = "windows"
+)]
+
 use anyhow::Result;
 use notion_rss::api::run_server;
 use notion_rss::rss::{add_subscribe, deleted, update};
-use notion_rss::{read_file_to_feed, update_self, NOTION_FEED};
+use notion_rss::{read_file_to_feed, update_self};
+use notion_rss::cli::NotionConfig;
 
 const BANNER: &str = r#"
 ███╗   ██╗ ██████╗ ████████╗██╗ ██████╗ ███╗   ██╗      ██████╗ ███████╗███████╗
@@ -16,11 +22,20 @@ ________________________________________________
 :  https://blog.kali-team.cn/donate            :
  -----------------------------------------------
 "#;
-
+#[tauri::command]
+fn greet(name: &str) -> String {
+    format!("Hello, {}!", name)
+}
 #[tokio::main]
 async fn main() -> Result<()> {
     println!("{}", BANNER);
-    let config = NOTION_FEED.config.clone();
+    let config = NotionConfig::default();
+    if !config.cli {
+        tauri::Builder::default()
+            .invoke_handler(tauri::generate_handler![greet])
+            .run(tauri::generate_context!())
+            .expect("error while running tauri application");
+    }
     if config.update {
         update_self().await;
         std::process::exit(0);

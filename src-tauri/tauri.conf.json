@@ -7,7 +7,7 @@
     "withGlobalTauri": false
   },
   "package": {
-    "productName": "notion-rss-gui",
+    "productName": "notion-rss",
     "version": "0.0.0"
   },
   "tauri": {
@@ -33,7 +33,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "com.emo.notion-rss",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -62,7 +62,7 @@
         "fullscreen": false,
         "height": 600,
         "resizable": true,
-        "title": "notion-rss-gui",
+        "title": "notion-rss",
         "width": 800
       }
     ]

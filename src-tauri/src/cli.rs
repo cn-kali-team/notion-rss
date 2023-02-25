@@ -61,6 +61,10 @@ pub struct NotionConfig {
     #[argh(switch)]
     #[serde(default)]
     pub daemon: bool,
+    /// cli mode
+    #[argh(switch)]
+    #[serde(skip)]
+    pub cli: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -95,9 +99,9 @@ fn default_timeout() -> u64 {
 }
 
 impl NotionConfig {
-    fn is_valid(&self) -> bool {
-        self.source_id.is_some() && self.archive_id.is_some() && self.notion_token.is_some()
-    }
+    // fn is_valid(&self) -> bool {
+    //     self.source_id.is_some() && self.archive_id.is_some() && self.notion_token.is_some()
+    // }
     // fn merge(self, config: NotionConfig) -> Self {
     //     Self {
     //         notion_token: self.notion_token.or(config.notion_token),
@@ -137,21 +141,20 @@ impl Default for NotionConfig {
                         std::process::exit(0);
                     }
                 };
-            } else {
-                println!("GG");
-            }
-        } else if default.is_valid() {
-            if let Ok(out) = File::create(&config_path) {
-                serde_yaml::to_writer(
-                    out,
-                    &YamlConfig {
-                        config: default.clone(),
-                    },
-                )
-                .unwrap_or_default();
-                println!("Update configuration file to {:?}", config_path);
             }
         }
+        // else if default.is_valid() {
+        //     if let Ok(out) = File::create(&config_path) {
+        //         serde_yaml::to_writer(
+        //             out,
+        //             &YamlConfig {
+        //                 config: default.clone(),
+        //             },
+        //         )
+        //             .unwrap_or_default();
+        //         println!("Update configuration file to {:?}", config_path);
+        //     }
+        // }
         default
     }
 }

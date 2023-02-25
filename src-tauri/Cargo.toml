@@ -1,21 +1,43 @@
 [package]
-name = "notion-rss-gui"
-version = "0.0.0"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
+name = "notion-rss" #改这个
+version = "0.1.0"
 edition = "2021"
-
+authors = ["Kali-Team <root@kali-team.cn>"]
+include = ["LICENSE", "Cargo.toml", "src/**/*.rs"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
-tauri-build = { version = "1.2", features = [] }
+tauri-build = {version = "1.2.1", features = [] }
 
 [dependencies]
-serde_json = "1.0"
-serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.2", features = ["shell-open"] }
+argh = "0.1.8"
+notion-sdk = { git = "https://github.com/emo-cat/notion-rs" }
+tokio = { version = "1.25.0", features = ["full"] }
+futures = { version = "0.3", features = ["compat"] }
+once_cell = "1.16.0"
+feed-rs = "1.3.0"
+openssl = { version = "0.10", features = ["vendored"] }
+reqwest = { version = "0.11.11", features = ["json", "gzip", "native-tls", "socks"] }
+anyhow = "1"
+dirs = "4.0.0"
+chrono = { version = "0.4.19", features = ["serde"] }
+serde = { version = "1.0.147", features = ["derive"] }
+select = "0.5.0"
+mime = "0.3.16"
+encoding_rs = "0.8.28"
+regex = { version = "1.4.5", default-features = false, features = [
+    "std",
+    "unicode",
+] }
+serde_yaml = "0.9"
+tauri = { version = "1.2", features = ["devtools", "global-shortcut", "shell-open"] }
+actix-web = { version = "4.2.1", features = ["openssl"] }
+[target.'cfg(not(target_os = "windows"))'.dependencies]
+daemonize = "0.4.1"
+[target.'cfg(target_os="windows")'.build-dependencies]
+winres = "0.1"
+
+
 
 [features]
 # by default Tauri runs in production mode
