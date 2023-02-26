@@ -29,11 +29,11 @@
         <v-window-item value="setting">
           <v-card flat>
             <v-card-text>
-              <v-form ref="task_form" v-model="valid">
+              <v-form ref="config_form" v-model="valid">
                 <v-row no-gutters>
                   <v-col cols="12">
                     <v-text-field
-                      v-model="token"
+                      v-model="config.notion_token"
                       :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
                       :rules="[rules.required, rules.token]"
                       :type="show ? 'text' : 'password'"
@@ -45,31 +45,68 @@
                       @click:append="show = !show"
                     ></v-text-field>
                   </v-col>
-                  <v-text-field
-                    clearable
-                    label="Source Id"
-                    hint="8a49af585aa844208ee085b3814e1a0d"
-                    prepend-icon="mdi-rss"
-                  ></v-text-field>
-                  <v-text-field
-                    clearable
-                    label="Archive Id"
-                    hint="e8f7df1fe33242a88adad7bdd793cd1e"
-                    prepend-icon="mdi-archive"
-                  ></v-text-field>
+                  <v-col cols="6">
+                    <v-text-field
+                      v-model="config.source_id"
+                      clearable
+                      label="Source Id"
+                      hint="8a49af585aa844208ee085b3814e1a0d"
+                      prepend-icon="mdi-rss"
+                    ></v-text-field
+                  ></v-col>
+                  <v-col cols="6">
+                    <v-text-field
+                      v-model="config.archive_id"
+                      clearable
+                      label="Archive Id"
+                      hint="e8f7df1fe33242a88adad7bdd793cd1e"
+                      prepend-icon="mdi-archive"
+                    ></v-text-field
+                  ></v-col>
+                </v-row>
+                <v-row no-gutters>
+                  <v-col cols="12">
+                    <v-text-field
+                      v-model="config.proxy"
+                      clearable
+                      label="Proxy"
+                      hint="[http(s)|socks5(h)]://host:port"
+                      prepend-icon="mdi-arrow-decision"
+                    ></v-text-field
+                  ></v-col>
+                </v-row>
+                <v-row no-gutters>
+                  <v-col cols="6">
+                    <v-text-field
+                      v-model="config.api_server"
+                      clearable
+                      label="Api Server"
+                      hint="host:port"
+                      prepend-icon="mdi-server"
+                    ></v-text-field
+                  ></v-col>
+                  <v-col cols="6">
+                    <v-text-field
+                      v-model="config.token"
+                      clearable
+                      label="Api Server Token"
+                      hint="token"
+                      prepend-icon="mdi-security"
+                    ></v-text-field
+                  ></v-col>
                 </v-row>
               </v-form>
             </v-card-text>
             <v-divider class="mt-5" />
             <v-card-actions>
               <v-spacer />
-              <v-btn text @click="$refs['config_form'].reset()">重置</v-btn>
+              <v-btn text @click="$refs['config_form'].reset()">Reset</v-btn>
               <v-btn
                 tile
                 color="primary"
                 :loading="save_loading"
-                @click="handleSubmitForm"
-                >提交</v-btn
+                @click="handle_save"
+                >Save</v-btn
               >
             </v-card-actions>
           </v-card>
@@ -92,13 +129,6 @@
 
 <script>
 import { invoke } from "@tauri-apps/api";
-
-// now we can call our Command!
-// Right-click the application background and open the developer tools.
-// You will see "Hello, World!" printed in the console!
-invoke("greet", { name: "World" })
-  // `invoke` returns a Promise
-  .then((response) => console.log(response));
 export default {
   name: "NotionRss",
   components: {},
@@ -108,6 +138,17 @@ export default {
       show: false,
       valid: true,
       save_loading: false,
+      config: {
+        notion_token: "",
+        source_id: "",
+        archive_id: "",
+        proxy: "",
+        timeout: 15,
+        thread: 5,
+        api_server: "",
+        token: "",
+        daemon: false,
+      },
       token: "",
       rules: {
         required: (value) => !!value || "Required.",
@@ -119,12 +160,16 @@ export default {
     };
   },
   created() {
-    this.init_user();
-    // date: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
+    this.init_config();
   },
   methods: {
-    async init_user() {},
-    handleSubmitForm() {
+    async init_config() {
+      invoke("init_config").then((response) => {
+        console.log(response);
+        this.config = response;
+      });
+    },
+    handle_save() {
       if (this.$refs["config_form"].validate()) {
         this.btn_loading = true;
       }

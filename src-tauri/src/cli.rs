@@ -130,7 +130,7 @@ impl Default for NotionConfig {
                 config_path = config_file
             }
         }
-        if config_path.exists() && default.config.is_some() {
+        if config_path.exists() {
             if let Ok(file) = File::open(&config_path) {
                 match serde_yaml::from_reader::<_, YamlConfig>(&file) {
                     Ok(config) => {

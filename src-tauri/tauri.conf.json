@@ -11,8 +11,18 @@
     "version": "0.0.0"
   },
   "tauri": {
+    "systemTray": {
+      "iconPath": "icons/icon.ico",
+      "iconAsTemplate": true
+    },
     "allowlist": {
       "all": false,
+      "window": {
+        "all": true
+      },
+      "process": {
+        "all": true
+      },
       "shell": {
         "all": false,
         "open": true

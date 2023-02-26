@@ -34,6 +34,8 @@ use std::time::Duration;
 pub mod api;
 pub mod cli;
 pub mod rss;
+#[cfg(feature = "gui")]
+pub mod tray;
 mod ui;
 
 static NOTION_RSS_PATH: Lazy<PathBuf> = Lazy::new(|| -> PathBuf {
