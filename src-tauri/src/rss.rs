@@ -13,7 +13,7 @@ use notion_sdk::search::{
 };
 
 async fn get_source(start_pages: &Option<PagingCursor>) -> Result<Object> {
-    // Filter the source `Enabled` by the check box
+    // Filter the source `Enabled` by the checkbox
     let query = DatabaseQuery {
         sorts: None,
         filter: Some(FilterCondition::And {
@@ -30,7 +30,7 @@ async fn get_source(start_pages: &Option<PagingCursor>) -> Result<Object> {
         }),
         paging: None,
     }
-    .start_from(start_pages.clone());
+        .start_from(start_pages.clone());
     let dbs = NOTION_FEED
         .notion
         .databases_query(NOTION_FEED.source_id.clone(), Some(query))
@@ -38,8 +38,9 @@ async fn get_source(start_pages: &Option<PagingCursor>) -> Result<Object> {
     Ok(dbs)
 }
 
-pub async fn update() {
+pub async fn update(window: Option<tauri::Window>) {
     let (mut page_sender, mut page_receiver) = unbounded();
+    let o_window = window.clone();
     let source_handle = tokio::task::spawn(async move {
         let mut start_pages: Option<PagingCursor> = None;
         loop {
@@ -57,16 +58,20 @@ pub async fn update() {
                         break;
                     }
                 }
-                Err(e) => {
-                    println!("Get Source Error: {}", e);
-                    break;
+                Err(err) => {
+                    if let Some(w) = o_window.clone() {
+                        w.emit("PROGRESS", err.to_string()).unwrap_or_default();
+                    } else {
+                        println!("Update failed: {}", err)
+                    }
+                    return format!("Get Source Error: {}", err);
                 }
                 _ => {
                     break;
                 }
             }
         }
-        true
+        String::new()
     });
     let rss_handle = tokio::task::spawn(async move {
         let mut worker = FuturesUnordered::new();
@@ -84,14 +89,22 @@ pub async fn update() {
             }
             match result {
                 Ok(result) => {
-                    println!("Update succeeded: {}", result);
+                    if let Some(w) = window.clone() {
+                        w.emit("PROGRESS", result.to_string()).unwrap_or_default();
+                    } else {
+                        println!("Update succeeded: {}", result);
+                    }
                 }
                 Err(err) => {
-                    println!("Update failed: {}", err)
+                    if let Some(w) = window.clone() {
+                        w.emit("PROGRESS", err.to_string()).unwrap_or_default();
+                    } else {
+                        println!("Update failed: {}", err)
+                    }
                 }
             }
         }
-        true
+        return String::new();
     });
     let (_r1, _r2) = tokio::join!(source_handle, rss_handle);
 }
@@ -171,7 +184,7 @@ async fn get_deleted_page(start_pages: &Option<PagingCursor>) -> Result<Object> 
         }),
         paging: None,
     }
-    .start_from(start_pages.clone());
+        .start_from(start_pages.clone());
     let dbs = NOTION_FEED
         .notion
         .databases_query(NOTION_FEED.archive_id.clone(), Some(query))

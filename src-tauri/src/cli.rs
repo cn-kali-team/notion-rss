@@ -99,9 +99,20 @@ fn default_timeout() -> u64 {
 }
 
 impl NotionConfig {
-    // fn is_valid(&self) -> bool {
-    //     self.source_id.is_some() && self.archive_id.is_some() && self.notion_token.is_some()
-    // }
+    pub fn save(&self) -> String {
+        let config_path = NOTION_RSS_PATH.join("config.yaml");
+        if let Ok(out) = File::create(&config_path) {
+            serde_yaml::to_writer(
+                out,
+                &YamlConfig {
+                    config: self.clone(),
+                },
+            )
+                .unwrap_or_default();
+            return format!("Update success");
+        }
+        return format!("Update error");
+    }
     // fn merge(self, config: NotionConfig) -> Self {
     //     Self {
     //         notion_token: self.notion_token.or(config.notion_token),
@@ -144,16 +155,7 @@ impl Default for NotionConfig {
             }
         }
         // else if default.is_valid() {
-        //     if let Ok(out) = File::create(&config_path) {
-        //         serde_yaml::to_writer(
-        //             out,
-        //             &YamlConfig {
-        //                 config: default.clone(),
-        //             },
-        //         )
-        //             .unwrap_or_default();
-        //         println!("Update configuration file to {:?}", config_path);
-        //     }
+
         // }
         default
     }

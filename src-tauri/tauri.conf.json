@@ -26,6 +26,9 @@
       "shell": {
         "all": false,
         "open": true
+      },
+      "notification": {
+        "all": true
       }
     },
     "bundle": {
@@ -70,10 +73,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
-        "resizable": true,
+        "height": 550,
+        "resizable": false,
         "title": "notion-rss",
-        "width": 800
+        "width": 1200
       }
     ]
   }

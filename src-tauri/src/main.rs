@@ -1,16 +1,16 @@
 #![cfg_attr(
-    all(not(debug_assertions), target_os = "windows"),
-    windows_subsystem = "windows"
+all(not(debug_assertions), target_os = "windows"),
+windows_subsystem = "windows"
 )]
 
+use std::collections::HashMap;
 use anyhow::Result;
 use notion_rss::api::run_server;
 use notion_rss::cli::NotionConfig;
 use notion_rss::rss::{add_subscribe, deleted, update};
 use notion_rss::{read_file_to_feed, update_self};
-
-#[cfg(feature = "gui")]
 use notion_rss::tray::MyTray;
+
 const BANNER: &str = r#"
 ███╗   ██╗ ██████╗ ████████╗██╗ ██████╗ ███╗   ██╗      ██████╗ ███████╗███████╗
 ████╗  ██║██╔═══██╗╚══██╔══╝██║██╔═══██╗████╗  ██║      ██╔══██╗██╔════╝██╔════╝
@@ -24,16 +24,27 @@ ________________________________________________
 :  https://blog.kali-team.cn/donate            :
  -----------------------------------------------
 "#;
-#[cfg(feature = "gui")]
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}!", name)
-}
 
-#[cfg(feature = "gui")]
 #[tauri::command]
 fn init_config() -> NotionConfig {
     NotionConfig::default()
+}
+
+
+#[tauri::command]
+fn save_config(config: NotionConfig) -> String {
+    config.save()
+}
+
+#[tauri::command]
+async fn update_once(window: tauri::Window) {
+    update(Some(window.clone())).await;
+}
+
+
+#[tauri::command]
+fn run_api_server(window: tauri::Window) {
+    run_server(Some(window));
 }
 
 #[tokio::main]
@@ -41,11 +52,10 @@ async fn main() -> Result<()> {
     println!("{}", BANNER);
     let config = NotionConfig::default();
     if !config.cli {
-        #[cfg(feature = "gui")]
         tauri::Builder::default()
             .system_tray(tauri::SystemTray::new().with_menu(MyTray::tray_menu()))
             .on_system_tray_event(MyTray::on_system_tray_event)
-            .invoke_handler(tauri::generate_handler![greet, init_config])
+            .invoke_handler(tauri::generate_handler![save_config, init_config, update_once, run_api_server])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");
     }
@@ -65,18 +75,12 @@ async fn main() -> Result<()> {
                 }
             }
         }
-        update().await;
+        update(None).await;
         std::process::exit(0);
     }
     if config.deleted {
         deleted().await;
         std::process::exit(0);
-    }
-    if let Some(server) = &config.api_server {
-        run_server(server);
-        std::process::exit(0);
-    } else {
-        update().await;
     }
     Ok(())
 }

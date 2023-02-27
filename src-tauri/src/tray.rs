@@ -1,4 +1,3 @@
-use anyhow::Result;
 use tauri::{
     api, AppHandle, CustomMenuItem, Manager, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem,
     SystemTraySubmenu,
@@ -21,10 +20,6 @@ impl MyTray {
                 }
                 _ => {}
             },
-            #[cfg(target_os = "windows")]
-            SystemTrayEvent::LeftClick { .. } => {
-                resolve::create_window(app_handle);
-            }
             _ => {}
         }
     }

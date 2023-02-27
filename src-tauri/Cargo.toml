@@ -30,7 +30,7 @@ regex = { version = "1.4.5", default-features = false, features = [
     "unicode",
 ] }
 serde_yaml = "0.9"
-tauri = { version = "1.2", features = ["devtools", "global-shortcut", "shell-open", "system-tray", "window-all", "process-all"], optional = true }
+tauri = { version = "1.2", features = ["devtools", "global-shortcut", "notification", "notification-all", "process-all", "shell-open", "system-tray", "window-all"], optional = true }
 actix-web = { version = "4.2.1", features = ["openssl"] }
 [target.'cfg(not(target_os = "windows"))'.dependencies]
 daemonize = "0.4.1"
@@ -42,7 +42,7 @@ winres = "0.1"
 [features]
 # by default Tauri runs in production mode
 # when `tauri dev` runs it is executed with `cargo run --no-default-features` if `devPath` is an URL
-gui = ["custom-protocol", "tauri"]
+default = ["custom-protocol", "tauri"]
 # this feature is used used for production builds where `devPath` points to the filesystem
 # DO NOT remove this
 

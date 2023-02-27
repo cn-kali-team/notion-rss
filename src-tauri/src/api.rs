@@ -97,7 +97,7 @@ async fn subscribe(query: web::Query<Query>) -> impl Responder {
             html = html.replace("Kali-Team", &msg);
             println!("{}", msg);
             tokio::task::spawn(async move {
-                update().await;
+                update(None).await;
             });
         }
         Err(e) => {
@@ -159,25 +159,38 @@ async fn api_server(listening_address: SocketAddr, token: String) {
 }
 
 // Start web service
-pub fn run_server(server: &str) {
+pub fn run_server(window: Option<tauri::Window>) {
+    let server = match NOTION_FEED.config.api_server.clone() {
+        Some(server) => {
+            server
+        }
+        None => {
+            String::new()
+        }
+    };
     if NOTION_FEED.config.daemon {
         background();
     }
     // Scheduled update
+    let o_window = window.clone();
     tokio::task::spawn(async move {
         loop {
-            update().await;
+            update(o_window.clone()).await;
             thread::sleep(Duration::from_secs(60 * 60 * 4));
         }
     });
-    if let Ok(address) = SocketAddr::from_str(server) {
+    if let Ok(address) = SocketAddr::from_str(&server) {
         thread::spawn(move || {
             api_server(address, NOTION_FEED.config.token.clone());
         })
-        .join()
-        .expect("API service startup failed")
+            .join()
+            .expect("API service startup failed")
     } else {
-        println!("Invalid listening address");
+        if let Some(w) = window.clone() {
+            w.emit("PROGRESS", "Invalid listening address").unwrap_or_default();
+        } else {
+            println!("Invalid listening address");
+        }
     }
 }
 

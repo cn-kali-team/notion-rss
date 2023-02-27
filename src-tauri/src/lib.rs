@@ -30,11 +30,11 @@ use std::io::{BufRead, Cursor};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::time::Duration;
+use serde::{Deserialize, Serialize};
 
 pub mod api;
 pub mod cli;
 pub mod rss;
-#[cfg(feature = "gui")]
 pub mod tray;
 mod ui;
 
@@ -268,7 +268,7 @@ fn get_default_encoding(byte: &[u8], headers: header::HeaderMap) -> String {
 }
 
 // Update status
-#[derive(Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 enum Status {
     Pending,
     Done,
@@ -400,7 +400,7 @@ fn make_page(item: &feed_rs::model::Entry, page_id: PageId) -> HashMap<String, P
 }
 
 // Database field of the feed
-#[derive(Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SourcePage {
     id: PageId,
     icon: Option<FileOrEmojiObject>,
@@ -777,8 +777,8 @@ pub fn read_file_to_feed(file_path: &PathBuf) -> HashSet<String> {
 }
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
-where
-    P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
 {
     let file = File::open(filename)?;
     Ok(io::BufReader::new(file).lines())
