@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 extern crate daemonize;
 
 use crate::rss::{add_subscribe, update};
-use crate::{NOTION_FEED, NOTION_RSS_PATH};
+use crate::{NOTION_FEED, NOTION_RSS_PATH, SERVER_LOCK};
 use actix_web::http::header::ContentType;
 use actix_web::{middleware, web, App, HttpResponse, HttpServer, Responder};
 #[cfg(not(target_os = "windows"))]
@@ -14,6 +14,7 @@ use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod};
 #[cfg(not(target_os = "windows"))]
 use std::fs::File;
 use std::net::SocketAddr;
+use std::ops::Not;
 use std::str::FromStr;
 use std::thread;
 use std::time::Duration;
@@ -160,38 +161,39 @@ async fn api_server(listening_address: SocketAddr, token: String) {
 
 // Start web service
 pub fn run_server(window: Option<tauri::Window>) {
+    if let Ok(mut lock) = SERVER_LOCK.write() {
+        if lock.not() {
+            return;
+        } else {
+            *lock = false;
+        }
+    }
     let server = match NOTION_FEED.config.api_server.clone() {
-        Some(server) => {
-            server
-        }
-        None => {
-            String::new()
-        }
+        Some(server) => server,
+        None => String::new(),
     };
-    if NOTION_FEED.config.daemon {
+    if NOTION_FEED.config.daemon && NOTION_FEED.config.cli {
         background();
     }
-    // Scheduled update
     let o_window = window.clone();
+    if let Ok(address) = SocketAddr::from_str(&server) {
+        thread::spawn(move || {
+            api_server(address, NOTION_FEED.config.token.clone());
+        });
+    } else if let Some(w) = window {
+        w.emit("PROGRESS", "Invalid listening address")
+            .unwrap_or_default();
+    } else {
+        println!("Invalid listening address");
+        return;
+    }
+    // Scheduled update
     tokio::task::spawn(async move {
         loop {
             update(o_window.clone()).await;
             thread::sleep(Duration::from_secs(60 * 60 * 4));
         }
     });
-    if let Ok(address) = SocketAddr::from_str(&server) {
-        thread::spawn(move || {
-            api_server(address, NOTION_FEED.config.token.clone());
-        })
-            .join()
-            .expect("API service startup failed")
-    } else {
-        if let Some(w) = window.clone() {
-            w.emit("PROGRESS", "Invalid listening address").unwrap_or_default();
-        } else {
-            println!("Invalid listening address");
-        }
-    }
 }
 
 #[cfg(not(target_os = "windows"))]

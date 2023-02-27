@@ -22,6 +22,7 @@ use regex::Regex;
 use reqwest::{header, Client, Proxy, Url};
 use select::document::Document;
 use select::predicate::Name;
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::fs::File;
@@ -29,14 +30,16 @@ use std::io;
 use std::io::{BufRead, Cursor};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use std::sync::RwLock;
 use std::time::Duration;
-use serde::{Deserialize, Serialize};
 
 pub mod api;
 pub mod cli;
 pub mod rss;
 pub mod tray;
 mod ui;
+
+static SERVER_LOCK: Lazy<RwLock<bool>> = Lazy::new(|| -> RwLock<bool> { RwLock::new(true) });
 
 static NOTION_RSS_PATH: Lazy<PathBuf> = Lazy::new(|| -> PathBuf {
     let mut config_path = PathBuf::new();
@@ -777,8 +780,8 @@ pub fn read_file_to_feed(file_path: &PathBuf) -> HashSet<String> {
 }
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
-    where
-        P: AsRef<Path>,
+where
+    P: AsRef<Path>,
 {
     let file = File::open(filename)?;
     Ok(io::BufReader::new(file).lines())

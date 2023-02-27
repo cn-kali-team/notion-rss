@@ -30,7 +30,7 @@ async fn get_source(start_pages: &Option<PagingCursor>) -> Result<Object> {
         }),
         paging: None,
     }
-        .start_from(start_pages.clone());
+    .start_from(start_pages.clone());
     let dbs = NOTION_FEED
         .notion
         .databases_query(NOTION_FEED.source_id.clone(), Some(query))
@@ -104,7 +104,7 @@ pub async fn update(window: Option<tauri::Window>) {
                 }
             }
         }
-        return String::new();
+        String::new()
     });
     let (_r1, _r2) = tokio::join!(source_handle, rss_handle);
 }
@@ -184,7 +184,7 @@ async fn get_deleted_page(start_pages: &Option<PagingCursor>) -> Result<Object> 
         }),
         paging: None,
     }
-        .start_from(start_pages.clone());
+    .start_from(start_pages.clone());
     let dbs = NOTION_FEED
         .notion
         .databases_query(NOTION_FEED.archive_id.clone(), Some(query))

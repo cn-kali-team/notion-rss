@@ -1,15 +1,15 @@
 #![cfg_attr(
-all(not(debug_assertions), target_os = "windows"),
-windows_subsystem = "windows"
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
 )]
 
-use std::collections::HashMap;
 use anyhow::Result;
 use notion_rss::api::run_server;
 use notion_rss::cli::NotionConfig;
 use notion_rss::rss::{add_subscribe, deleted, update};
-use notion_rss::{read_file_to_feed, update_self};
 use notion_rss::tray::MyTray;
+use notion_rss::{read_file_to_feed, update_self, NOTION_FEED};
+use notion_sdk::pagination::Object;
 
 const BANNER: &str = r#"
 ███╗   ██╗ ██████╗ ████████╗██╗ ██████╗ ███╗   ██╗      ██████╗ ███████╗███████╗
@@ -29,8 +29,13 @@ ________________________________________________
 fn init_config() -> NotionConfig {
     NotionConfig::default()
 }
-
-
+#[tauri::command]
+async fn init_user() -> Option<notion_sdk::user::User> {
+    if let Ok(Object::User { user }) = NOTION_FEED.notion.users_me().await {
+        return Some(user);
+    }
+    None
+}
 #[tauri::command]
 fn save_config(config: NotionConfig) -> String {
     config.save()
@@ -41,9 +46,8 @@ async fn update_once(window: tauri::Window) {
     update(Some(window.clone())).await;
 }
 
-
 #[tauri::command]
-fn run_api_server(window: tauri::Window) {
+async fn run_api_server(window: tauri::Window) {
     run_server(Some(window));
 }
 
@@ -52,12 +56,43 @@ async fn main() -> Result<()> {
     println!("{}", BANNER);
     let config = NotionConfig::default();
     if !config.cli {
-        tauri::Builder::default()
+        let builder = tauri::Builder::default()
             .system_tray(tauri::SystemTray::new().with_menu(MyTray::tray_menu()))
             .on_system_tray_event(MyTray::on_system_tray_event)
-            .invoke_handler(tauri::generate_handler![save_config, init_config, update_once, run_api_server])
-            .run(tauri::generate_context!())
+            .invoke_handler(tauri::generate_handler![
+                save_config,
+                init_config,
+                init_user,
+                update_once,
+                run_api_server
+            ]);
+        let app = builder
+            .build(tauri::generate_context!())
             .expect("error while running tauri application");
+        app.run(|app_handle, e| match e {
+            tauri::RunEvent::ExitRequested { api, .. } => {
+                api.prevent_exit();
+            }
+            tauri::RunEvent::Exit => {
+                app_handle.exit(0);
+            }
+            #[cfg(target_os = "macos")]
+            tauri::RunEvent::WindowEvent { label, event, .. } => {
+                use tauri::Manager;
+                if label == "main" {
+                    match event {
+                        tauri::WindowEvent::CloseRequested { api, .. } => {
+                            api.prevent_close();
+                            app_handle.get_window("main").map(|win| {
+                                let _ = win.hide();
+                            });
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            _ => {}
+        });
     }
     if config.update {
         update_self().await;

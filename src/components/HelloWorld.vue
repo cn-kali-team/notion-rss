@@ -4,9 +4,9 @@
       <v-navigation-drawer permanent>
         <v-list>
           <v-list-item
-            prepend-avatar="https://www.gravatar.com/avatar/bc985422e4fd51abac5af2691ee33a93"
-            title="Kali-Team"
-            subtitle="root@kali-team.cn"
+            :prepend-avatar="user.avatar_url"
+            :title="user.name"
+            subtitle=""
           ></v-list-item>
         </v-list>
         <v-divider></v-divider>
@@ -203,6 +203,7 @@ export default {
       api_server_enabled: false,
       valid: true,
       update_loading: false,
+      user:{avatar_url:"",name:"NotionRss"},
       config: {
         notion_token: "",
         source_id: "",
@@ -231,6 +232,7 @@ export default {
   created() {
     this.event_listen();
     this.init_config();
+    this.init_user();
   },
   methods: {
     async event_listen() {
@@ -244,12 +246,21 @@ export default {
     async init_config() {
       invoke("init_config").then((response) => {
         this.config = response;
-        if (this.api_server && this.token) {
+        if (this.config.api_server && this.config.token) {
           this.api_server_enabled = true;
           invoke("run_api_server", { window: appWindow }).then((response) => {
             console.log(response);
           });
         }
+        if (this.config.daemon) {
+          appWindow.minimize();
+        }
+      });
+    },
+    async init_user() {
+      invoke("init_user").then((response) => {
+          console.log(response)
+          this.user = response;
       });
     },
     async restart() {

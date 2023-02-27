@@ -101,17 +101,17 @@ fn default_timeout() -> u64 {
 impl NotionConfig {
     pub fn save(&self) -> String {
         let config_path = NOTION_RSS_PATH.join("config.yaml");
-        if let Ok(out) = File::create(&config_path) {
+        if let Ok(out) = File::create(config_path) {
             serde_yaml::to_writer(
                 out,
                 &YamlConfig {
                     config: self.clone(),
                 },
             )
-                .unwrap_or_default();
-            return format!("Update success");
+            .unwrap_or_default();
+            return "Update success".to_string();
         }
-        return format!("Update error");
+        "Update error".to_string()
     }
     // fn merge(self, config: NotionConfig) -> Self {
     //     Self {
@@ -119,6 +119,7 @@ impl NotionConfig {
     //         source_id: self.source_id.or(config.source_id),
     //         archive_id: self.archive_id.or(config.archive_id),
     //         file: self.file,
+    //         config: None,
     //         proxy: self.proxy.or(config.proxy),
     //         timeout: self.timeout | config.timeout,
     //         update: self.update | config.update,
@@ -126,8 +127,13 @@ impl NotionConfig {
     //         thread: self.thread | config.thread,
     //         webhook: self.webhook.or(config.webhook),
     //         api_server: self.api_server.or(config.api_server),
-    //         token: if self.token.is_empty() { config.token } else { self.token },
+    //         token: if self.token.is_empty() {
+    //             config.token
+    //         } else {
+    //             self.token
+    //         },
     //         daemon: self.daemon | config.daemon,
+    //         cli: false,
     //     }
     // }
 }
@@ -145,7 +151,12 @@ impl Default for NotionConfig {
             if let Ok(file) = File::open(&config_path) {
                 match serde_yaml::from_reader::<_, YamlConfig>(&file) {
                     Ok(config) => {
-                        default = config.config;
+                        if default.cli && default.config.is_some() {
+                            default = config.config.clone();
+                        }
+                        if !default.cli {
+                            default = config.config;
+                        }
                     }
                     Err(err) => {
                         println!("Failed to read configuration file: {}", err);
@@ -154,9 +165,6 @@ impl Default for NotionConfig {
                 };
             }
         }
-        // else if default.is_valid() {
-
-        // }
         default
     }
 }

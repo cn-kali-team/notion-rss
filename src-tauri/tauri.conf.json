@@ -18,7 +18,14 @@
     "allowlist": {
       "all": false,
       "window": {
-        "all": true
+        "all": true,
+        "close": true,
+        "hide": true,
+        "show": true,
+        "maximize": true,
+        "minimize": true,
+        "unmaximize": true,
+        "unminimize": true
       },
       "process": {
         "all": true
