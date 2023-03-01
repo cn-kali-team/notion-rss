@@ -127,7 +127,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CXXFLAGS: --std=c++14
-          RUSTFLAGS: "-C target-feature=+crt-static"
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
 
