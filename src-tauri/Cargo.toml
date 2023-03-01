@@ -33,7 +33,7 @@ serde_yaml = "0.9"
 tauri = { version = "1.2", features = ["clipboard-all", "devtools", "global-shortcut", "notification", "process-all", "system-tray", "window-all"], optional = true }
 actix-web = { version = "4.2.1", features = ["openssl"] }
 [target.'cfg(not(target_os = "windows"))'.dependencies]
-daemonize = "0.4.1"
+daemonize = "0.5.0"
 [target.'cfg(target_os="windows")'.build-dependencies]
 winres = "0.1"
 
