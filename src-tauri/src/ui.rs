@@ -35,10 +35,14 @@ pub async fn update_once(window: tauri::Window) {
 pub async fn add_feed(url: String, window: tauri::Window) {
     match add_subscribe(url).await {
         Ok(t) => {
-            window.emit("INFO", format!("Submitted Successfully: {}.", t)).unwrap_or_default();
+            window
+                .emit("INFO", format!("Submitted Successfully: {}.", t))
+                .unwrap_or_default();
         }
         Err(e) => {
-            window.emit("ERROR", format!("Submitted Failed: {}.", e)).unwrap_or_default();
+            window
+                .emit("ERROR", format!("Submitted Failed: {}.", e))
+                .unwrap_or_default();
         }
     }
 }
@@ -70,11 +74,11 @@ pub fn create_window(app_handle: &AppHandle) {
         "main".to_string(),
         tauri::WindowUrl::App("index.html".into()),
     )
-        .title("notion-rss")
-        .center()
-        .fullscreen(false)
-        .min_inner_size(1200.0, 550.0)
-        .resizable(false);
+    .title("notion-rss")
+    .center()
+    .fullscreen(false)
+    .min_inner_size(1200.0, 550.0)
+    .resizable(false);
 
     #[cfg(target_os = "windows")]
     {
@@ -102,7 +106,7 @@ pub fn create_window(app_handle: &AppHandle) {
     }
 
     #[cfg(target_os = "macos")]
-        let _ = builder
+    let _ = builder
         .decorations(true)
         .transparent(false)
         .inner_size(1200.0, 550.0)
@@ -111,7 +115,7 @@ pub fn create_window(app_handle: &AppHandle) {
         .build();
 
     #[cfg(target_os = "linux")]
-        let _ = builder
+    let _ = builder
         .decorations(true)
         .transparent(false)
         .inner_size(1200.0, 550.0)

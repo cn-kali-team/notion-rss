@@ -58,6 +58,7 @@ const HTML: &str = r#"
 				count--;
 				if (count < 0) {
 					clearInterval(countdown);
+					window.location.href="about:blank";
 					window.close();
 				}
 			}, 1000);

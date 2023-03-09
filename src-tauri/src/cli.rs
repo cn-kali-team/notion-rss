@@ -33,10 +33,6 @@ pub struct NotionConfig {
     #[argh(option, default = "default_timeout()")]
     #[serde(default = "default_timeout")]
     pub timeout: u64,
-    /// update self
-    #[argh(switch)]
-    #[serde(skip)]
-    pub update: bool,
     /// deleted old archive
     #[argh(switch)]
     #[serde(skip)]
@@ -136,7 +132,6 @@ impl NotionConfig {
             config: None,
             proxy: self.proxy.or(config.proxy),
             timeout: self.timeout | config.timeout,
-            update: self.update,
             deleted: self.deleted,
             thread: self.thread | config.thread,
             webhook: self.webhook.or(config.webhook),
@@ -167,10 +162,10 @@ impl Default for NotionConfig {
                     Ok(config) => {
                         // 如果开了cli，而且指定了配置文件
                         if default.cli && default.config.is_some() {
-                            default = default.merge(config.config.clone());
+                            default = default.merge(config.config);
                         } else if !default.cli {
                             // 图像化也使用配置文件
-                            default = config.config.clone()
+                            default = config.config
                         }
                     }
                     Err(err) => {

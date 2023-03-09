@@ -226,7 +226,7 @@
     <template v-slot:actions>
       <v-btn
         :color="snackbar.color"
-       variant="flat"
+        variant="flat"
         @click="snackbar.show = false"
       >
         Close
@@ -281,7 +281,6 @@ export default {
   created() {
     this.event_listen();
     this.init_config();
-    this.init_user();
   },
   methods: {
     async add_feed() {
@@ -380,7 +379,7 @@ export default {
     },
     //初始化配置
     async init_config() {
-      invoke("init_config").then((response) => {
+      invoke("init_config").then(async (response) => {
         this.config = response;
         if (
           this.config.api_server &&
@@ -397,6 +396,7 @@ export default {
         if (this.config.daemon) {
           appWindow.minimize();
         }
+        await this.init_user();
       });
     },
     // 初始化用户信息

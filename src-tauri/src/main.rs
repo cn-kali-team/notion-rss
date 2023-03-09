@@ -1,6 +1,6 @@
 #![cfg_attr(
-all(not(debug_assertions), target_os = "windows"),
-windows_subsystem = "windows"
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
 )]
 
 use anyhow::Result;
@@ -8,7 +8,7 @@ use notion_rss::cli::NotionConfig;
 use notion_rss::rss::{add_subscribe, deleted, update};
 use notion_rss::tray::MyTray;
 use notion_rss::ui::resolve_setup;
-use notion_rss::{read_file_to_feed, update_self};
+use notion_rss::read_file_to_feed;
 
 const BANNER: &str = r#"
 ███╗   ██╗ ██████╗ ████████╗██╗ ██████╗ ███╗   ██╗      ██████╗ ███████╗███████╗
@@ -28,10 +28,6 @@ ________________________________________________
 async fn main() -> Result<()> {
     println!("{}", BANNER);
     let config = NotionConfig::default();
-    if config.update {
-        update_self().await;
-        std::process::exit(0);
-    }
     // add subscribe from file
     if let Some(p) = config.file {
         for f in read_file_to_feed(&p) {

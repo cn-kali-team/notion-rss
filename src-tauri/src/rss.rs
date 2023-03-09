@@ -30,7 +30,7 @@ async fn get_source(start_pages: &Option<PagingCursor>) -> Result<Object> {
         }),
         paging: None,
     }
-        .start_from(start_pages.clone());
+    .start_from(start_pages.clone());
     let dbs = NOTION_FEED
         .notion
         .databases_query(NOTION_FEED.source_id.clone(), Some(query))
@@ -112,6 +112,9 @@ pub async fn update(window: Option<tauri::Window>) {
 // Add subscription link from RssHub browser plug-in
 pub async fn add_subscribe(u: String) -> Result<String> {
     // SourcePage
+    if let Err(e) = reqwest::Url::parse(&u) {
+        return Err(anyhow!(format!("Submitted Failed: {}.", e)));
+    }
     if let Ok(e) = filter_from_database(u.clone()).await {
         return Err(anyhow!(format!("The feed already exists as :{}", e)));
     }
@@ -184,7 +187,7 @@ async fn get_deleted_page(start_pages: &Option<PagingCursor>) -> Result<Object> 
         }),
         paging: None,
     }
-        .start_from(start_pages.clone());
+    .start_from(start_pages.clone());
     let dbs = NOTION_FEED
         .notion
         .databases_query(NOTION_FEED.archive_id.clone(), Some(query))
