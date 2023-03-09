@@ -17,7 +17,7 @@ pub struct NotionConfig {
     /// the archive database id
     #[argh(option)]
     pub archive_id: Option<DatabaseId>,
-    /// read the feed from the file
+    /// add feed from url or file
     #[argh(option, short = 'f')]
     #[serde(skip)]
     pub file: Option<String>,
@@ -142,7 +142,7 @@ impl NotionConfig {
                 self.token
             },
             daemon: self.daemon | config.daemon,
-            cli: false,
+            cli: self.cli,
         }
     }
 }

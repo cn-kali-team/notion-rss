@@ -58,8 +58,7 @@ Build your own RSS Feeds in [Notion](https://notion.so).
 
 ```text
 ➜ notion-rss --help
-
-Usage: notion-rss [--notion-token <notion-token>] [--source-id <source-id>] [--archive-id <archive-id>] [--file <file>] [-c <config>] [--proxy <proxy>] [--timeout <timeout>] [--update] [--deleted] [--thread <thread>] [--webhook <webhook>] [--api-server <api-server>] [--token <token>] [--daemon]
+Usage: notion-rss [--notion-token <notion-token>] [--source-id <source-id>] [--archive-id <archive-id>] [-f <file>] [-c <config>] [--proxy <proxy>] [--timeout <timeout>] [--deleted] [--thread <thread>] [--webhook <webhook>] [--api-server <api-server>] [--token <token>] [--daemon] [--cli]
 
 notion-rss
 
@@ -67,12 +66,11 @@ Options:
   --notion-token    the notion api token
   --source-id       the source database id
   --archive-id      the archive database id
-  --file            read the feed from the file
+  -f, --file        add feed from url or file
   -c, --config      read the config from the file
   --proxy           proxy to use for requests
                     (ex:[http(s)|socks5(h)]://host:port)
   --timeout         set request timeout.
-  --update          update self
   --deleted         deleted old archive
   --thread          number of concurrent threads.
   --webhook         send results to webhook server
@@ -80,7 +78,9 @@ Options:
   --api-server      start a web API service (ex:127.0.0.1:8080)
   --token           api Router authentication
   --daemon          api background service
+  --cli             cli mode
   --help            display usage information
+
 ```
 
 ## Example
@@ -157,3 +157,7 @@ config:
   token: 21a2b7047d4de8076de462724daf8f8f
   daemon: false
 ```
+
+## Cli Mode
+
+- Command line mode using the `--cli` parameter, The default is graphical interface.
