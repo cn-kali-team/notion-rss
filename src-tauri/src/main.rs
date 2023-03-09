@@ -5,10 +5,10 @@
 
 use anyhow::Result;
 use notion_rss::cli::NotionConfig;
+use notion_rss::read_file_to_feed;
 use notion_rss::rss::{add_subscribe, deleted, update};
 use notion_rss::tray::MyTray;
 use notion_rss::ui::resolve_setup;
-use notion_rss::{read_file_to_feed, update_self};
 
 const BANNER: &str = r#"
 ███╗   ██╗ ██████╗ ████████╗██╗ ██████╗ ███╗   ██╗      ██████╗ ███████╗███████╗
@@ -28,6 +28,26 @@ ________________________________________________
 async fn main() -> Result<()> {
     println!("{}", BANNER);
     let config = NotionConfig::default();
+    // add subscribe from file
+    if let Some(p) = config.file {
+        for f in read_file_to_feed(&p) {
+            println!("{}", f);
+            match add_subscribe(f).await {
+                Ok(t) => {
+                    println!("Submitted Successfully: {}.", t);
+                }
+                Err(e) => {
+                    println!("Submitted Failed: {}.", e);
+                }
+            }
+        }
+        update(None).await;
+        std::process::exit(0);
+    }
+    if config.deleted {
+        deleted().await;
+        std::process::exit(0);
+    }
     if !config.cli {
         let builder = tauri::Builder::default()
             .system_tray(tauri::SystemTray::new().with_menu(MyTray::tray_menu()))
@@ -41,7 +61,8 @@ async fn main() -> Result<()> {
                 notion_rss::ui::init_config,
                 notion_rss::ui::init_user,
                 notion_rss::ui::update_once,
-                notion_rss::ui::run_api_server
+                notion_rss::ui::run_api_server,
+                notion_rss::ui::add_feed
             ]);
         let app = builder
             .build(tauri::generate_context!())
@@ -70,29 +91,8 @@ async fn main() -> Result<()> {
             }
             _ => {}
         });
-    }
-    if config.update {
-        update_self().await;
-        std::process::exit(0);
-    }
-    // add subscribe from file
-    if let Some(p) = config.file {
-        for f in read_file_to_feed(&p) {
-            match add_subscribe(f).await {
-                Ok(t) => {
-                    println!("Submitted Successfully: {}.", t);
-                }
-                Err(e) => {
-                    println!("Submitted Failed: {}.", e);
-                }
-            }
-        }
+    } else {
         update(None).await;
-        std::process::exit(0);
-    }
-    if config.deleted {
-        deleted().await;
-        std::process::exit(0);
     }
     Ok(())
 }

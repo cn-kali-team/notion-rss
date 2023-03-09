@@ -27,7 +27,7 @@ use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::io;
-use std::io::{BufRead, Cursor};
+use std::io::BufRead;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::RwLock;
@@ -449,7 +449,7 @@ impl SourcePage {
         }
     }
     // Return the parsed subscription list
-    async fn get_feed_entries(&self, link: Url) -> Result<Vec<feed_rs::model::Entry>> {
+    async fn get_feed_entries(&self, link: Url) -> Result<feed_rs::model::Feed> {
         let content = NOTION_FEED
             .client(self.proxy)
             .get(link)
@@ -458,17 +458,25 @@ impl SourcePage {
             .bytes()
             .await?;
         let channels = feed_rs::parser::parse(&content[..])?;
-        Ok(channels.entries)
+        Ok(channels)
     }
     pub async fn get_feed(mut self) -> Result<SourcePage> {
         match Url::parse(&self.link.clone().unwrap_or_default()) {
             Ok(link) => {
                 // Update icon and setting status to pending
-                self.update_icon().await.unwrap_or_default();
+                let text = self.update_icon().await.unwrap_or_default();
                 let titles = self.get_page_from_database().await.unwrap_or_default();
                 match self.get_feed_entries(link).await {
-                    Ok(entries) => {
-                        for item in entries {
+                    Ok(feed) => {
+                        // If the title is empty, update the title
+                        if self.title.is_empty() {
+                            if let Some(title) = feed.title {
+                                self.title = title.content;
+                            } else {
+                                self.title = get_title(&text);
+                            }
+                        }
+                        for item in feed.entries {
                             // Skip updating if it is an outdated article
                             if let Some(last_time) = self.last_update_time {
                                 if let Some(published_time) = item.published {
@@ -620,7 +628,7 @@ impl SourcePage {
         Err(anyhow!("find_favicon_tag"))
     }
     // If the icon is empty, update the icon
-    async fn update_icon(&mut self) -> Result<()> {
+    async fn update_icon(&mut self) -> Result<String> {
         let mut text = String::new();
         if self.icon.is_none() {
             if let Ok(u) = Url::parse(&self.link.clone().unwrap_or_default()) {
@@ -640,14 +648,10 @@ impl SourcePage {
                 }
             }
         }
-        // If the title is empty, update the title
-        if self.title.is_empty() && !text.is_empty() {
-            self.title = get_title(&text);
-        }
         self.status = Status::Pending;
         self.log = None;
         self.update_source_page(None).await;
-        Ok(())
+        Ok(text)
     }
     // Get the title associated with the current feed
     async fn get_page_from_database(&self) -> Result<HashSet<String>> {
@@ -734,41 +738,12 @@ impl ArchivePage {
     }
 }
 
-async fn download_file_from_github(update_url: &str, filename: &str) {
-    if let Ok(response) = NOTION_FEED.proxy_client.get(update_url).send().await {
-        let mut file = File::create(filename).unwrap();
-        let mut content = Cursor::new(response.bytes().await.unwrap_or_default());
-        std::io::copy(&mut content, &mut file).unwrap_or_default();
-    }
-}
-
-pub async fn update_self() {
-    // https://doc.rust-lang.org/reference/conditional-compilation.html
-    let mut base_url =
-        String::from("https://github.com/cn-kali-team/notion-rss/releases/download/default/");
-    let mut download_name = "notion-rss_amd64";
-    if cfg!(target_os = "windows") {
-        download_name = "notion-rss.exe";
-    } else if cfg!(target_os = "linux") {
-        download_name = "notion-rss-amd64";
-    } else if cfg!(target_os = "macos") && cfg!(target_arch = "x86_64") {
-        download_name = "notion-rss-darwin";
-    } else if cfg!(target_os = "macos") && cfg!(target_arch = "aarch64") {
-        download_name = "notion-rss-aarch64-darwin";
-    };
-    base_url.push_str(download_name);
-    let save_filename = "latest_".to_owned() + download_name;
-    download_file_from_github(&base_url, &save_filename).await;
-    println!(
-        "Please rename the file {} to {}",
-        save_filename, download_name
-    );
-}
-
-pub fn read_file_to_feed(file_path: &PathBuf) -> HashSet<String> {
-    if let Ok(lines) = read_lines(file_path) {
+pub fn read_file_to_feed(file_url: &str) -> HashSet<String> {
+    if let Ok(lines) = read_lines(file_url) {
         let target_list: Vec<String> = lines.filter_map(Result::ok).collect();
         return HashSet::from_iter(target_list);
+    } else if let Ok(u) = Url::parse(file_url) {
+        return HashSet::from_iter(vec![u.to_string()]);
     }
     HashSet::from_iter([])
 }

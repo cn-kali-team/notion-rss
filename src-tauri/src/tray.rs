@@ -1,13 +1,14 @@
 use crate::ui::create_window;
-use tauri::{AppHandle, CustomMenuItem, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem};
+use tauri::{AppHandle, CustomMenuItem, SystemTrayEvent, SystemTrayMenu};
 
 pub struct MyTray {}
 
 impl MyTray {
     pub fn tray_menu() -> SystemTrayMenu {
         SystemTrayMenu::new()
-            .add_native_item(SystemTrayMenuItem::Separator)
-            .add_item(CustomMenuItem::new("open_window", "Dashboard"))
+            // .add_item(CustomMenuItem::new("add_feed", "Add Feed"))
+            // .add_native_item(SystemTrayMenuItem::Separator)
+            .add_item(CustomMenuItem::new("open_window", "Dashboard").accelerator("CmdOrControl+O"))
             .add_item(CustomMenuItem::new("quit", "Quit").accelerator("CmdOrControl+Q"))
     }
 

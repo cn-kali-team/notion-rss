@@ -60,9 +60,9 @@ pub async fn update(window: Option<tauri::Window>) {
                 }
                 Err(err) => {
                     if let Some(w) = o_window.clone() {
-                        w.emit("PROGRESS", err.to_string()).unwrap_or_default();
+                        w.emit("INFO", err.to_string()).unwrap_or_default();
                     } else {
-                        println!("Update failed: {}", err)
+                        println!("Update failed: {}", err);
                     }
                     return format!("Get Source Error: {}", err);
                 }
@@ -90,14 +90,14 @@ pub async fn update(window: Option<tauri::Window>) {
             match result {
                 Ok(result) => {
                     if let Some(w) = window.clone() {
-                        w.emit("PROGRESS", result.to_string()).unwrap_or_default();
+                        w.emit("INFO", result.to_string()).unwrap_or_default();
                     } else {
                         println!("Update succeeded: {}", result);
                     }
                 }
                 Err(err) => {
                     if let Some(w) = window.clone() {
-                        w.emit("PROGRESS", err.to_string()).unwrap_or_default();
+                        w.emit("ERROR", err.to_string()).unwrap_or_default();
                     } else {
                         println!("Update failed: {}", err)
                     }
@@ -112,6 +112,9 @@ pub async fn update(window: Option<tauri::Window>) {
 // Add subscription link from RssHub browser plug-in
 pub async fn add_subscribe(u: String) -> Result<String> {
     // SourcePage
+    if let Err(e) = reqwest::Url::parse(&u) {
+        return Err(anyhow!(format!("Submitted Failed: {}.", e)));
+    }
     if let Ok(e) = filter_from_database(u.clone()).await {
         return Err(anyhow!(format!("The feed already exists as :{}", e)));
     }

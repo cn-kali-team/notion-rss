@@ -58,6 +58,7 @@ const HTML: &str = r#"
 				count--;
 				if (count < 0) {
 					clearInterval(countdown);
+					window.location.href="about:blank";
 					window.close();
 				}
 			}, 1000);
@@ -174,7 +175,7 @@ pub fn run_server(window: Option<tauri::Window>) {
             api_server(address, NOTION_FEED.config.token.clone());
         });
     } else if let Some(w) = window {
-        w.emit("PROGRESS", "Invalid listening address")
+        w.emit("ERROR", "Invalid listening address")
             .unwrap_or_default();
     } else {
         println!("Invalid listening address");
