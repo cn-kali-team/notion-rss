@@ -174,7 +174,7 @@ pub fn run_server(window: Option<tauri::Window>) {
             api_server(address, NOTION_FEED.config.token.clone());
         });
     } else if let Some(w) = window {
-        w.emit("PROGRESS", "Invalid listening address")
+        w.emit("ERROR", "Invalid listening address")
             .unwrap_or_default();
     } else {
         println!("Invalid listening address");

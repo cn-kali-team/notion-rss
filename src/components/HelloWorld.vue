@@ -221,12 +221,12 @@
       </v-card>
     </v-dialog>
   </v-row>
-  <v-snackbar v-model="snackbar.show" timeout="3000">
+  <v-snackbar multi-line v-model="snackbar.show" timeout="3000">
     {{ snackbar.text }}
     <template v-slot:actions>
       <v-btn
         :color="snackbar.color"
-        variant="text"
+       variant="flat"
         @click="snackbar.show = false"
       >
         Close
@@ -294,10 +294,12 @@ export default {
         this.config.source_id
       ) {
         this.update_loading = true;
-        invoke("add_feed", { window: appWindow }).then((response) => {
-          console.log(response);
-          this.update_loading = false;
-        });
+        invoke("add_feed", { url: this.feed_url, window: appWindow }).then(
+          (response) => {
+            console.log(response);
+            this.update_loading = false;
+          }
+        );
       } else {
         this.snackbar = {
           text: "Check your configuration",
@@ -357,12 +359,21 @@ export default {
     },
     // 监听事件
     async event_listen() {
-      await appWindow.listen("PROGRESS", ({ event, payload }) => {
+      await appWindow.listen("INFO", ({ event, payload }) => {
         console.log(event, payload);
         this.snackbar = {
           text: payload.toString(),
           show: true,
           color: "success",
+        };
+        this.update_loading = false;
+      });
+      await appWindow.listen("ERROR", ({ event, payload }) => {
+        console.log(event, payload);
+        this.snackbar = {
+          text: payload.toString(),
+          show: true,
+          color: "error",
         };
         this.update_loading = false;
       });

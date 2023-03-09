@@ -30,7 +30,7 @@ async fn get_source(start_pages: &Option<PagingCursor>) -> Result<Object> {
         }),
         paging: None,
     }
-    .start_from(start_pages.clone());
+        .start_from(start_pages.clone());
     let dbs = NOTION_FEED
         .notion
         .databases_query(NOTION_FEED.source_id.clone(), Some(query))
@@ -60,9 +60,9 @@ pub async fn update(window: Option<tauri::Window>) {
                 }
                 Err(err) => {
                     if let Some(w) = o_window.clone() {
-                        w.emit("PROGRESS", err.to_string()).unwrap_or_default();
+                        w.emit("INFO", err.to_string()).unwrap_or_default();
                     } else {
-                        println!("Update failed: {}", err)
+                        println!("Update failed: {}", err);
                     }
                     return format!("Get Source Error: {}", err);
                 }
@@ -90,14 +90,14 @@ pub async fn update(window: Option<tauri::Window>) {
             match result {
                 Ok(result) => {
                     if let Some(w) = window.clone() {
-                        w.emit("PROGRESS", result.to_string()).unwrap_or_default();
+                        w.emit("INFO", result.to_string()).unwrap_or_default();
                     } else {
                         println!("Update succeeded: {}", result);
                     }
                 }
                 Err(err) => {
                     if let Some(w) = window.clone() {
-                        w.emit("PROGRESS", err.to_string()).unwrap_or_default();
+                        w.emit("ERROR", err.to_string()).unwrap_or_default();
                     } else {
                         println!("Update failed: {}", err)
                     }
@@ -184,7 +184,7 @@ async fn get_deleted_page(start_pages: &Option<PagingCursor>) -> Result<Object> 
         }),
         paging: None,
     }
-    .start_from(start_pages.clone());
+        .start_from(start_pages.clone());
     let dbs = NOTION_FEED
         .notion
         .databases_query(NOTION_FEED.archive_id.clone(), Some(query))
