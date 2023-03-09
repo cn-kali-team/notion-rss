@@ -108,7 +108,6 @@ pub fn create_window(app_handle: &AppHandle) {
     #[cfg(target_os = "macos")]
     let _ = builder
         .decorations(true)
-        .transparent(false)
         .inner_size(1200.0, 550.0)
         .hidden_title(true)
         .title_bar_style(tauri::TitleBarStyle::Overlay)
