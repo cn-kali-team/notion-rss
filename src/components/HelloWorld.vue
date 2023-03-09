@@ -19,10 +19,6 @@
             <v-icon start> mdi-rss </v-icon>
             Source
           </v-tab>
-          <v-tab value="archive">
-            <v-icon start> mdi-archive </v-icon>
-            Archive
-          </v-tab>
         </v-tabs>
       </v-navigation-drawer>
       <v-window v-model="tab">
@@ -154,14 +150,41 @@
             </v-card-text>
           </v-card>
         </v-window-item>
-        <v-window-item value="source" v-show="false">
+        <v-window-item value="source">
           <v-card flat>
-            <v-card-text> </v-card-text>
-          </v-card>
-        </v-window-item>
-        <v-window-item value="archive" v-show="false">
-          <v-card flat>
-            <v-card-text> </v-card-text>
+            <v-card-text>
+              <v-form ref="feed_form" v-model="valid" @submit.prevent>
+                <v-row no-gutters>
+                  <v-col cols="10">
+                    <v-text-field
+                      v-model="feed_url"
+                      :rules="[rules.required, rules.url]"
+                      clearable
+                      label="Url"
+                      hint="https://blog.kali-team.cn/index.xml"
+                      prepend-icon="mdi-rss"
+                    ></v-text-field
+                  ></v-col>
+                  <v-col cols="2">
+                    <v-tooltip text="Add Feed Source">
+                      <template v-slot:activator="{ props }">
+                        <v-btn
+                          size="x-small"
+                          @click="add_feed"
+                          v-bind="props"
+                          stacked
+                          :loading="update_loading"
+                          @blur="$refs['feed_form'].validate()"
+                          prepend-icon="mdi-playlist-check"
+                          >Add</v-btn
+                        >
+                      </template>
+                    </v-tooltip>
+                  </v-col>
+                </v-row>
+              </v-form>
+              <v-divider />
+            </v-card-text>
           </v-card>
         </v-window-item>
       </v-window>
@@ -229,6 +252,7 @@ export default {
       api_server_enabled: false,
       valid: false,
       update_loading: false,
+      feed_url: "",
       user: { avatar_url: "", name: "NotionRss" },
       config: {
         notion_token: "",
@@ -242,6 +266,7 @@ export default {
         daemon: false,
       },
       rules: {
+        url: (v) => this.url_rules(v),
         required: (value) => !!value || "Required.",
         uuid: (v) =>
           (!!v && v.toString().length >= 32) || "Database should be uuid",
@@ -259,6 +284,30 @@ export default {
     this.init_user();
   },
   methods: {
+    async add_feed() {
+      const { valid } = await this.$refs.feed_form.validate();
+      console.log(this.feed_url);
+      if (
+        valid &&
+        this.config.notion_token &&
+        this.config.archive_id &&
+        this.config.source_id
+      ) {
+        this.update_loading = true;
+        invoke("add_feed", { window: appWindow }).then((response) => {
+          console.log(response);
+          this.update_loading = false;
+        });
+      } else {
+        this.snackbar = {
+          text: "Check your configuration",
+          show: true,
+          color: "error",
+        };
+        this.update_loading = false;
+      }
+      this.update_loading = false;
+    },
     async onCopy() {
       const { valid } = await this.$refs.config_form.validate();
       if (valid) {
@@ -271,6 +320,16 @@ export default {
           color: "success",
         };
       }
+    },
+    async url_rules(value) {
+      return new Promise((resolve) => {
+        try {
+          new URL(value);
+          return resolve(true);
+        } catch (_) {
+          return resolve(`URL expected`);
+        }
+      });
     },
     async api_server_token_rules(value) {
       return new Promise((resolve) => {

@@ -18,9 +18,9 @@ pub struct NotionConfig {
     #[argh(option)]
     pub archive_id: Option<DatabaseId>,
     /// read the feed from the file
-    #[argh(option)]
+    #[argh(option, short = 'f')]
     #[serde(skip)]
-    pub file: Option<PathBuf>,
+    pub file: Option<String>,
     /// read the config from the file
     #[argh(option, short = 'c')]
     #[serde(skip)]
@@ -126,29 +126,30 @@ impl NotionConfig {
         }
         NotionConfig::default()
     }
-    // fn merge(self, config: NotionConfig) -> Self {
-    //     Self {
-    //         notion_token: self.notion_token.or(config.notion_token),
-    //         source_id: self.source_id.or(config.source_id),
-    //         archive_id: self.archive_id.or(config.archive_id),
-    //         file: self.file,
-    //         config: None,
-    //         proxy: self.proxy.or(config.proxy),
-    //         timeout: self.timeout | config.timeout,
-    //         update: self.update | config.update,
-    //         deleted: self.deleted,
-    //         thread: self.thread | config.thread,
-    //         webhook: self.webhook.or(config.webhook),
-    //         api_server: self.api_server.or(config.api_server),
-    //         token: if self.token.is_empty() {
-    //             config.token
-    //         } else {
-    //             self.token
-    //         },
-    //         daemon: self.daemon | config.daemon,
-    //         cli: false,
-    //     }
-    // }
+    // 命令行覆盖配置文件,以self为主要，config补充
+    fn merge(self, config: NotionConfig) -> Self {
+        Self {
+            notion_token: self.notion_token.or(config.notion_token),
+            source_id: self.source_id.or(config.source_id),
+            archive_id: self.archive_id.or(config.archive_id),
+            file: self.file,
+            config: None,
+            proxy: self.proxy.or(config.proxy),
+            timeout: self.timeout | config.timeout,
+            update: self.update,
+            deleted: self.deleted,
+            thread: self.thread | config.thread,
+            webhook: self.webhook.or(config.webhook),
+            api_server: self.api_server.or(config.api_server),
+            token: if self.token.is_empty() {
+                config.token
+            } else {
+                self.token
+            },
+            daemon: self.daemon | config.daemon,
+            cli: false,
+        }
+    }
 }
 
 impl Default for NotionConfig {
@@ -164,11 +165,12 @@ impl Default for NotionConfig {
             if let Ok(file) = File::open(&config_path) {
                 match serde_yaml::from_reader::<_, YamlConfig>(&file) {
                     Ok(config) => {
+                        // 如果开了cli，而且指定了配置文件
                         if default.cli && default.config.is_some() {
-                            default = config.config.clone();
-                        }
-                        if !default.cli {
-                            default = config.config;
+                            default = default.merge(config.config.clone());
+                        } else if !default.cli {
+                            // 图像化也使用配置文件
+                            default = config.config.clone()
                         }
                     }
                     Err(err) => {

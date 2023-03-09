@@ -765,17 +765,21 @@ pub async fn update_self() {
     );
 }
 
-pub fn read_file_to_feed(file_path: &PathBuf) -> HashSet<String> {
-    if let Ok(lines) = read_lines(file_path) {
+pub fn read_file_to_feed(file_url: &str) -> HashSet<String> {
+    if let Ok(lines) = read_lines(file_url) {
         let target_list: Vec<String> = lines.filter_map(Result::ok).collect();
         return HashSet::from_iter(target_list);
+    } else {
+        if let Ok(u) = Url::parse(file_url) {
+            return HashSet::from_iter(vec![u.to_string()]);
+        }
     }
     HashSet::from_iter([])
 }
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
-where
-    P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
 {
     let file = File::open(filename)?;
     Ok(io::BufReader::new(file).lines())

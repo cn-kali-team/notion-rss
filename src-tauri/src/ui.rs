@@ -1,6 +1,6 @@
 use crate::api::run_server;
 use crate::cli::NotionConfig;
-use crate::rss::update;
+use crate::rss::{add_subscribe, update};
 use crate::{CONFIG, NOTION_FEED};
 use notion_sdk::pagination::Object;
 use tauri::{App, AppHandle, Manager};
@@ -32,6 +32,18 @@ pub async fn update_once(window: tauri::Window) {
 }
 
 #[tauri::command]
+pub async fn add_feed(url: String, window: tauri::Window) {
+    match add_subscribe(url).await {
+        Ok(t) => {
+            window.emit("PROGRESS", format!("Submitted Successfully: {}.", t)).unwrap_or_default();
+        }
+        Err(e) => {
+            window.emit("PROGRESS", format!("Submitted Failed: {}.", e)).unwrap_or_default();
+        }
+    }
+}
+
+#[tauri::command]
 pub async fn run_api_server(window: tauri::Window) {
     run_server(Some(window));
 }
@@ -58,28 +70,26 @@ pub fn create_window(app_handle: &AppHandle) {
         "main".to_string(),
         tauri::WindowUrl::App("index.html".into()),
     )
-    .title("notion-rss")
-    .center()
-    .fullscreen(false)
-    .min_inner_size(1200.0, 550.0);
+        .title("notion-rss")
+        .center()
+        .fullscreen(false)
+        .min_inner_size(1200.0, 550.0)
+        .resizable(false);
 
     #[cfg(target_os = "windows")]
     {
         use std::time::Duration;
-        use tokio::time::sleep;
 
         match builder
             .decorations(false)
-            .transparent(true)
-            .inner_size(800.0, 636.0)
+            .transparent(false)
+            .inner_size(1200.0, 550.0)
             .visible(false)
             .build()
         {
             Ok(_) => {
                 let app_handle = app_handle.clone();
                 tauri::async_runtime::spawn(async move {
-                    sleep(Duration::from_secs(1)).await;
-
                     if let Some(window) = app_handle.get_window("main") {
                         let _ = window.show();
                         let _ = window.unminimize();
@@ -92,17 +102,18 @@ pub fn create_window(app_handle: &AppHandle) {
     }
 
     #[cfg(target_os = "macos")]
-    let _ = builder
+        let _ = builder
         .decorations(true)
-        .inner_size(800.0, 642.0)
+        .transparent(false)
+        .inner_size(1200.0, 550.0)
         .hidden_title(true)
         .title_bar_style(tauri::TitleBarStyle::Overlay)
         .build();
 
     #[cfg(target_os = "linux")]
-    let _ = builder
+        let _ = builder
         .decorations(true)
         .transparent(false)
-        .inner_size(800.0, 642.0)
+        .inner_size(1200.0, 550.0)
         .build();
 }
