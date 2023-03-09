@@ -5,10 +5,10 @@
 
 use anyhow::Result;
 use notion_rss::cli::NotionConfig;
+use notion_rss::read_file_to_feed;
 use notion_rss::rss::{add_subscribe, deleted, update};
 use notion_rss::tray::MyTray;
 use notion_rss::ui::resolve_setup;
-use notion_rss::read_file_to_feed;
 
 const BANNER: &str = r#"
 ███╗   ██╗ ██████╗ ████████╗██╗ ██████╗ ███╗   ██╗      ██████╗ ███████╗███████╗
