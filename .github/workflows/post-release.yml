@@ -130,6 +130,15 @@ jobs:
           sed -i -e "s/\"version\": \".*/\"version\": \"`date +'%-y.%-m.%-d'`\",/" package.json
       - name: install frontend dependencies
         run: yarn install # change this to npm or pnpm depending on which one you use
+      - name: Build tauri app
+        uses: tauri-apps/tauri-action@v0
+        if: matrix.platform != 'linux-musl'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+        with:
+          releaseId: ${{ needs.create-release.outputs.release_id }}
       - name: Build cli release binary
         shell: bash
         run: |
@@ -165,22 +174,6 @@ jobs:
           asset_path: ${{ env.ASSET }}
           asset_name: ${{ env.ASSET }}
           asset_content_type: application/octet-stream
-      - name: Move File
-        shell: bash
-        run: |
-          mv src-tauri/src/bin/notion-rss-cli.rs src-tauri/src/bin/notion-rss.rs
-          rm ${{ env.BIN_FILE }}
-          rm ${{ env.ASSET }}
-      - name: Build tauri app
-        uses: tauri-apps/tauri-action@v0
-        if: matrix.platform != 'linux-musl'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
-        with:
-          releaseId: ${{ needs.create-release.outputs.release_id }}
-
 
   publish-release:
     permissions:
