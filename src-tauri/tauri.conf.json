@@ -1,0 +1,96 @@
+{
+  "build": {
+    "beforeDevCommand": "yarn dev",
+    "beforeBuildCommand": "yarn build",
+    "devPath": "http://localhost:1420",
+    "distDir": "../dist",
+    "withGlobalTauri": false
+  },
+  "package": {
+    "version": "2023.3.10",
+    "productName": "notion-rss"
+  },
+  "tauri": {
+    "systemTray": {
+      "iconPath": "icons/icon.ico",
+      "iconAsTemplate": true
+    },
+    "allowlist": {
+      "all": false,
+      "window": {
+        "all": true,
+        "close": true,
+        "hide": true,
+        "show": true,
+        "maximize": true,
+        "minimize": true,
+        "unmaximize": true,
+        "unminimize": true
+      },
+      "process": {
+        "all": true
+      },
+      "clipboard": {
+        "all": true,
+        "writeText": true,
+        "readText": true
+      }
+    },
+    "bundle": {
+      "active": true,
+      "category": "DeveloperTool",
+      "copyright": "© 2023 Kali-Team All Rights Reserved",
+      "deb": {
+        "depends": [
+          "openssl"
+        ]
+      },
+      "externalBin": [],
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "identifier": "com.emo.notion-rss",
+      "longDescription": "Build your own RSS Feeds in Notion.",
+      "macOS": {
+        "entitlements": null,
+        "exceptionDomain": "",
+        "frameworks": [],
+        "providerShortName": null,
+        "signingIdentity": null
+      },
+      "resources": [],
+      "shortDescription": "Build your own RSS Feeds in Notion.",
+      "targets": "all",
+      "windows": {
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": ""
+      }
+    },
+    "security": {
+      "csp": "script-src 'unsafe-eval' 'self'; default-src blob: data: filesystem: ws: wss: http: https: tauri: 'unsafe-eval' 'unsafe-inline' 'self'; img-src data: 'self';"
+    },
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://github.com/cn-kali-team/notion-rss/releases/download/updater/update.json",
+        "https://hub.fastgit.xyz/cn-kali-team/notion-rss/releases/download/updater/update-proxy.json"
+      ],
+      "dialog": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVCQzc1OTg2RkUwMDI3MkQKUldRdEp3RCtobG5IVytVVzdveGRRTWQ4U2o3RjlBcDNwV1ZreWpxbnZ0TG9JTWVseDk0Y3U2MlQK"
+    },
+    "windows": [
+      {
+        "fullscreen": false,
+        "height": 550,
+        "resizable": false,
+        "title": "notion-rss",
+        "width": 1200
+      }
+    ]
+  }
+}
