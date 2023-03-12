@@ -4,6 +4,7 @@ use notion_sdk::database::id::DatabaseId;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::path::PathBuf;
+use std::str::FromStr;
 
 #[derive(Debug, Serialize, Deserialize, Clone, FromArgs)]
 #[argh(description = "notion-rss")]
@@ -178,6 +179,38 @@ impl Default for NotionConfig {
                         std::process::exit(0);
                     }
                 };
+            }
+        }
+        for (k, v) in std::env::vars() {
+            match k.as_str() {
+                "NR_NOTION_TOKEN"=> {
+                    default.notion_token = Some(v);
+                }
+                "NR_API_SERVER" => {
+                    default.api_server = Some(v);
+                }
+                "NR_PROXY" => {
+                    default.proxy = Some(v);
+                }
+                "NR_DAEMON" => {
+                    default.daemon = FromStr::from_str(&v).map_or(false, |d| d);
+                }
+                "NR_TOKEN" => {
+                    default.token = v;
+                }
+                "NR_SOURCE_ID" => {
+                    default.source_id = DatabaseId::from_str(&v).ok();
+                }
+                "NR_ARCHIVE_ID" => {
+                    default.archive_id = DatabaseId::from_str(&v).ok();
+                }
+                "NR_TIMEOUT" => {
+                    default.timeout = FromStr::from_str(&v).map_or(15, |d| d);
+                }
+                "NR_HOUR" => {
+                    default.hour = FromStr::from_str(&v).map_or(4, |d| d);
+                }
+                _ => {}
             }
         }
         default

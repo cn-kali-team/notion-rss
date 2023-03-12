@@ -55,10 +55,12 @@ async fn main() -> Result<()> {
         deleted().await;
         std::process::exit(0);
     }
-    #[cfg(feature = "cli")]
-    run_server();
-    #[cfg(not(feature = "cli"))]
-    run_server(None);
+    if config.api_server.is_some() {
+        #[cfg(feature = "cli")]
+        run_server();
+        #[cfg(not(feature = "cli"))]
+        run_server(None);
+    }
     start(config).await;
     Ok(())
 }

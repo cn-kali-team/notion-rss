@@ -154,12 +154,14 @@ jobs:
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
       - name: Build cli release binary
+        if: matrix.os != 'windows-latest'
         shell: bash
         run: |
           mv src-tauri/src/bin/notion-rss.rs src-tauri/src/bin/notion-rss-cli.rs
           cargo build --release --features cli --no-default-features --target ${{ matrix.target }} --bin=notion-rss-cli
       - name: Build archive
         shell: bash
+        if: matrix.os != 'windows-latest'
         run: |
           staging="notion-rss-cli_${{ needs.create-release.outputs.release_version }}_${{ matrix.target }}"
           mkdir -p "$staging"
@@ -179,6 +181,7 @@ jobs:
             echo "BIN_FILE=$bin_file" >> $GITHUB_ENV
           fi
       - name: Upload cli release archive
+        if: matrix.os != 'windows-latest'
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
