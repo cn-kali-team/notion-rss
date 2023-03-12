@@ -89,7 +89,7 @@ jobs:
           - platform: linux-aarch64
             os: ubuntu-latest
             rust: stable
-            target: aarch64-unknown-linux-musl
+            target: aarch64-unknown-linux-gnu
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
@@ -146,7 +146,7 @@ jobs:
         run: yarn install # change this to npm or pnpm depending on which one you use
       - name: Build tauri app
         uses: tauri-apps/tauri-action@v0
-        if: matrix.platform == 'win-msvc' &&  matrix.platform == 'linux' &&matrix.platform == 'macos'
+        if: matrix.platform == 'win-msvc' ||  matrix.platform == 'linux' || matrix.platform == 'macos'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
@@ -173,7 +173,6 @@ jobs:
             echo "BIN_FILE=$bin_file" >> $GITHUB_ENV
           else
             bin_file="target/${{ matrix.target }}/release/notion-rss-cli"
-            strip "$bin_file"
             cp "$bin_file" "$staging/"
             tar czf "$staging.tar.gz" -C "$staging" notion-rss-cli README.md LICENSE
             echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
