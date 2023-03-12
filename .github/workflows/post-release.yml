@@ -64,7 +64,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ linux, macos, win-msvc, linux-musl ]
+        platform: [ linux, macos, win-msvc, linux-musl, linux-arm-v7, linux-aarch64 ]
         include:
           - platform: linux
             os: ubuntu-latest
@@ -145,7 +145,7 @@ jobs:
         run: yarn install # change this to npm or pnpm depending on which one you use
       - name: Build tauri app
         uses: tauri-apps/tauri-action@v0
-        if: !contains(['linux-musl','linux-arm-v7','linux-aarch64'], matrix.platform)
+        if: contains(['linux', 'macos', 'win-msvc'], matrix.platform)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
