@@ -1,0 +1,19 @@
+[target.x86_64-pc-windows-msvc]
+rustflags = [
+    "-C", "target-feature=+crt-static",
+    "-C", "target-cpu=native",
+]
+
+[target.i686-pc-windows-msvc]
+rustflags = [
+    "-C", "target-feature=+crt-static",
+    "-C", "target-cpu=native",
+]
+
+[target.armv7-unknown-linux-gnueabihf]
+rustflags = ["-C", "target-feature=+crt-static"]
+linker = "arm-linux-gnueabihf-gcc"
+
+[target.aarch64-unknown-linux-musl]
+rustflags = ["-C", "target-feature=+crt-static"]
+linker = "aarch64-linux-musl-gcc"
