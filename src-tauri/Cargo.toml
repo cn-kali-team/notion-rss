@@ -10,6 +10,7 @@ include = ["LICENSE", "Cargo.toml", "src/**/*.rs"]
 tauri-build = { version = "1.2.1", features = [] }
 
 [dependencies]
+opml = "1.1.5"
 argh = "0.1.8"
 notion-sdk = { git = "https://github.com/emo-cat/notion-rs" }
 tokio = { version = "1.25.0", features = ["full"] }

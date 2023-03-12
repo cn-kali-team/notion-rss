@@ -173,12 +173,54 @@
                           v-bind="props"
                           stacked
                           :loading="update_loading"
-                          @blur="$refs['feed_form'].validate()"
                           prepend-icon="mdi-playlist-check"
                           >Add</v-btn
                         >
                       </template>
                     </v-tooltip>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col cols="10">
+                    <v-file-input
+                      label="Import source from opml file"
+                      prepend-icon="mdi-file-xml-box"
+                      show-size
+                      counter
+                      accept=".opml,.txt,.xml"
+                      v-model="feed_file"
+                      @change="load_file"
+                    ></v-file-input>
+                  </v-col>
+                  <v-col cols="2">
+                    <v-tooltip text="Import source">
+                      <template v-slot:activator="{ props }">
+                        <v-btn
+                          size="x-small"
+                          @click="import_feed"
+                          v-bind="props"
+                          stacked
+                          :loading="update_loading"
+                          prepend-icon="mdi-file-import"
+                          >Import</v-btn
+                        >
+                      </template>
+                    </v-tooltip>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col cols="10">
+                    <v-progress-linear
+                      v-show="show_progress_bar"
+                      striped
+                      height="25"
+                      v-model="make_progress_bar"
+                      color="primary"
+                    >
+                      <template v-slot:default="{ value }">
+                        <strong>Importing {{ Math.ceil(value) }}%</strong>
+                      </template>
+                    </v-progress-linear>
                   </v-col>
                 </v-row>
               </v-form>
@@ -254,6 +296,8 @@ export default {
   props: {},
   data() {
     return {
+      progress_bar: { total: 0, progress: 0 },
+      show_progress_bar: false,
       show: false,
       dialog: false,
       snackbar: { show: false, text: "", color: "success" },
@@ -261,6 +305,8 @@ export default {
       valid: false,
       update_loading: false,
       feed_url: "",
+      feed_file: [],
+      content: null,
       user: { avatar_url: "favicon.ico", name: "NotionRss" },
       config: {
         notion_token: "",
@@ -285,6 +331,12 @@ export default {
       },
       tab: "setting",
     };
+  },
+  computed: {
+    // whenever question changes, this function will run
+    make_progress_bar() {
+      return (this.progress_bar.progress / this.progress_bar.total) * 100;
+    },
   },
   created() {
     this.event_listen();
@@ -312,10 +364,8 @@ export default {
       this.update_loading = false;
     },
     async add_feed() {
-      const { valid } = await this.$refs.feed_form.validate();
-      console.log(this.feed_url);
       if (
-        valid &&
+        !!this.feed_url &&
         this.config.notion_token &&
         this.config.archive_id &&
         this.config.source_id
@@ -327,6 +377,47 @@ export default {
             this.update_loading = false;
           }
         );
+      } else {
+        this.snackbar = {
+          text: "Check your configuration",
+          show: true,
+          color: "error",
+        };
+      }
+    },
+    load_file() {
+      if (this.feed_file) {
+        const reader = new FileReader();
+        let files = this.feed_file[0];
+        reader.onload = (res) => {
+          this.content = res.target.result;
+        };
+        reader.onerror = (err) => console.log(err);
+        reader.readAsText(files);
+      } else {
+        this.snackbar = {
+          text: "Check your configuration",
+          show: true,
+          color: "error",
+        };
+      }
+    },
+    async import_feed() {
+      if (
+        !!this.content &&
+        this.config.notion_token &&
+        this.config.archive_id &&
+        this.config.source_id
+      ) {
+        this.show_progress_bar = true;
+        this.update_loading = true;
+        invoke("import_feed", {
+          content: this.content,
+          window: appWindow,
+        }).then((response) => {
+          console.log(response);
+          this.update_loading = false;
+        });
       } else {
         this.snackbar = {
           text: "Check your configuration",
@@ -401,6 +492,17 @@ export default {
           color: "error",
         };
         this.update_loading = false;
+      });
+      await appWindow.listen("PROGRESS", ({ event, payload }) => {
+        console.log(event, payload);
+        this.progress_bar = payload;
+        if (this.progress_bar.total == this.progress_bar.progress) {
+          this.snackbar = {
+            text: "Done",
+            show: true,
+            color: "success",
+          };
+        }
       });
     },
     //初始化配置

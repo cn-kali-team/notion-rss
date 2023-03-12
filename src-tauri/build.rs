@@ -18,6 +18,8 @@ fn main() {
             Ok(_) => {}
         }
     }
+    #[cfg(not(feature = "cli"))]
+    tauri_build::build()
 }
 
 // nothing to do for other operating systems

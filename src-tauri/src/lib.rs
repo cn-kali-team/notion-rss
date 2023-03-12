@@ -18,17 +18,19 @@ use notion_sdk::pagination::Object;
 use notion_sdk::search::{DatabaseQuery, FilterCondition, PropertyCondition, RelationCondition};
 use notion_sdk::NotionApi;
 use once_cell::sync::Lazy;
+use opml::OPML;
 use regex::Regex;
 use reqwest::{header, Client, Proxy, Url};
 use select::document::Document;
 use select::predicate::Name;
 use serde::{Deserialize, Serialize};
+use serde_yaml::to_string;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::fs::File;
-use std::io;
-use std::io::BufRead;
-use std::path::{Path, PathBuf};
+
+use std::io::Read;
+use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::RwLock;
 use std::time::Duration;
@@ -739,21 +741,40 @@ impl ArchivePage {
         }
     }
 }
-
+fn parser_op(outline: &opml::Outline) -> HashSet<String> {
+    let mut h = HashSet::new();
+    for o in &outline.outlines {
+        h.extend(parser_op(o));
+    }
+    if let Some(url) = &outline.xml_url {
+        h.insert(url.clone());
+    }
+    h
+}
+pub fn op_to_url(file_content: &str) -> Result<HashSet<String>> {
+    let mut all = HashSet::new();
+    if file_content.starts_with("<?xml") {
+        let document = OPML::from_str(file_content)?;
+        for outline in &document.body.outlines {
+            all.extend(parser_op(outline));
+        }
+    } else {
+        let target_list: Vec<String> = file_content
+            .lines()
+            .map(to_string)
+            .filter_map(Result::ok)
+            .collect();
+        all = HashSet::from_iter(target_list)
+    }
+    Ok(all)
+}
 pub fn read_file_to_feed(file_url: &str) -> HashSet<String> {
-    if let Ok(lines) = read_lines(file_url) {
-        let target_list: Vec<String> = lines.filter_map(Result::ok).collect();
-        return HashSet::from_iter(target_list);
+    if let Ok(mut f) = File::open(file_url) {
+        let mut file_content = String::new();
+        let _ = f.read_to_string(&mut file_content);
+        return op_to_url(&file_content).unwrap_or_default();
     } else if let Ok(u) = Url::parse(file_url) {
         return HashSet::from_iter(vec![u.to_string()]);
     }
     HashSet::from_iter([])
-}
-
-fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
-where
-    P: AsRef<Path>,
-{
-    let file = File::open(filename)?;
-    Ok(io::BufReader::new(file).lines())
 }

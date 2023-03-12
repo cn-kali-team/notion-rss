@@ -1,10 +1,10 @@
 use crate::api::run_server;
 use crate::cli::NotionConfig;
 use crate::rss::{add_subscribe, update};
-use crate::{CONFIG, NOTION_FEED};
+use crate::{op_to_url, CONFIG, NOTION_FEED};
 use notion_sdk::pagination::Object;
+use serde::{Deserialize, Serialize};
 use tauri::{App, AppHandle, Manager};
-
 #[tauri::command]
 pub fn init_config() -> NotionConfig {
     let c = CONFIG.read().unwrap().clone();
@@ -30,6 +30,37 @@ pub fn save_config(config: NotionConfig) -> String {
 pub async fn update_once(window: tauri::Window) {
     #[cfg(not(feature = "cli"))]
     update(Some(window.clone())).await;
+}
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct Progress {
+    total: usize,
+    progress: usize,
+}
+#[tauri::command]
+pub async fn import_feed(content: String, window: tauri::Window) {
+    let ul = op_to_url(&content).unwrap_or_default();
+    let mut progress = Progress {
+        total: ul.len(),
+        progress: 0,
+    };
+    for url in ul {
+        match add_subscribe(url).await {
+            Ok(t) => {
+                window
+                    .emit("INFO", format!("Submitted Successfully: {}.", t))
+                    .unwrap_or_default();
+            }
+            Err(e) => {
+                window
+                    .emit("ERROR", format!("Submitted Failed: {}.", e))
+                    .unwrap_or_default();
+            }
+        }
+        progress.progress = progress.progress + 1;
+        window
+            .emit("PROGRESS", progress.clone())
+            .unwrap_or_default();
+    }
 }
 
 #[tauri::command]

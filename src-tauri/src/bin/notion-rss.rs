@@ -78,7 +78,8 @@ async fn start(config: NotionConfig) {
                 notion_rss::ui::init_user,
                 notion_rss::ui::update_once,
                 notion_rss::ui::run_api_server,
-                notion_rss::ui::add_feed
+                notion_rss::ui::add_feed,
+                notion_rss::ui::import_feed
             ]);
         let app = builder
             .build(tauri::generate_context!())

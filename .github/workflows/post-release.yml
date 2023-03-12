@@ -143,6 +143,7 @@ jobs:
         shell: bash
         run: |
           mv src-tauri/src/bin/notion-rss.rs src-tauri/src/bin/notion-rss-cli.rs
+          echo "OPENSSL_DIR=C:\Program Files\OpenSSL-Win64" >>$GITHUB_ENV
           cargo build --release --features cli --no-default-features --target ${{ matrix.target }} --bin=notion-rss-cli
       - name: Build archive
         shell: bash
