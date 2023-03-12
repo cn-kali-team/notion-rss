@@ -1,9 +1,10 @@
 #![cfg_attr(
-    all(not(debug_assertions), target_os = "windows"),
-    windows_subsystem = "windows"
+all(not(debug_assertions), target_os = "windows"),
+windows_subsystem = "windows"
 )]
 
 use anyhow::Result;
+use notion_rss::api::run_server;
 use notion_rss::cli::NotionConfig;
 use notion_rss::read_file_to_feed;
 use notion_rss::rss::{add_subscribe, deleted, update};
@@ -53,6 +54,7 @@ async fn main() -> Result<()> {
         deleted().await;
         std::process::exit(0);
     }
+    run_server();
     start(config).await;
     Ok(())
 }

@@ -1,0 +1,10 @@
+.git
+build
+docs
+scripts
+tests
+makefile
+target
+dist
+node_modules
+.idea
