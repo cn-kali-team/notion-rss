@@ -19,8 +19,8 @@ jobs:
         shell: bash
         run: |
           curl --silent "https://api.github.com/repos/cn-kali-team/notion-rss/releases/latest" > latest.json
-          cat latest.json| jq -r .tag_name | xargs -I {} echo TAG={} >> $GITHUB_ENV
-          cat latest.json| jq -r '.assets[]|select(.name |startswith("notion-rss-cli_"))|select(.name |endswith("unknown-linux-musl.tar.gz")).browser_download_url' | xargs -I {} echo DOWNLOAD_URL={} >> $GITHUB_ENV
+          cat latest.json| jq -r .tag_name | xargs -I {} echo TAG={} >> $GITHUB_OUTPUT
+          cat latest.json| jq -r '.assets[]|select(.name |startswith("notion-rss-cli_"))|select(.name |endswith("unknown-linux-musl.tar.gz")).browser_download_url' | xargs -I {} echo DOWNLOAD_URL={} >> $GITHUB_OUTPUT
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -37,8 +37,8 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           build-args: |
-            DOWNLOAD_URL=${{ steps.meta.env.DOWNLOAD_URL }}
+            DOWNLOAD_URL=${{ steps.meta.outputs.DOWNLOAD_URL }}
           context: .
           platforms: linux/amd64
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/notion-rss,${{ secrets.DOCKER_USERNAME }}/notion-rss:${{ steps.meta.env.TAG }}
+          tags: ${{ secrets.DOCKER_USERNAME }}/notion-rss:latest,${{ secrets.DOCKER_USERNAME }}/notion-rss:${{ steps.meta.outputs.TAG }}
