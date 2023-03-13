@@ -40,4 +40,4 @@ jobs:
           context: .
           platforms: linux/amd64
           push: true
-          tags: kaliteam/notion-rss:latest,kaliteam/notion-rss:${{ steps.meta.env.TAG }}
+          tags: ${{ secrets.DOCKER_USERNAME }}/notion-rss:latest,${{ secrets.DOCKER_USERNAME }}/notion-rss:${{ steps.meta.env.TAG }}
