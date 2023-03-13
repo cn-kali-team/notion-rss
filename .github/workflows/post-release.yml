@@ -94,7 +94,7 @@ jobs:
     env:
       BINARY_EXTENSION: ${{ endsWith(matrix.target, '-msvc') && '.exe' || '' }}
       STAGING: notion-rss-cli_${{ needs.create-release.outputs.release_version }}_${{ matrix.target }}
-      PATH_BINARY: ${{ github.workspace }}/target/${{ matrix.target }}/release/notion-rss-cli${{ endsWith(matrix.target, '-msvc') && '.exe' || '' }}
+      PATH_BINARY: target/${{ matrix.target }}/release/notion-rss-cli${{ endsWith(matrix.target, '-msvc') && '.exe' || '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -115,7 +115,7 @@ jobs:
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          workspaces: './src-tauri -> target'
+          workspaces: './src-tauri -> ../target'
       - name: set version
         shell: bash
         run: |
@@ -134,7 +134,6 @@ jobs:
         shell: bash
         run: |
           choco install make strawberryperl nsis llvm openssl --no-progress --limit-output
-          echo "C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin" >> $GITHUB_PATH
           echo "CARGO_PKG_VERSION=`date +'%y.%m.%d'`" >>$GITHUB_ENV
           echo "OPENSSL_SRC_PERL=C:/Strawberry/perl/bin/perl" >> $GITHUB_ENV
           echo "OPENSSL_DIR=C:\Program Files\OpenSSL-Win64" >>$GITHUB_ENV
@@ -143,10 +142,6 @@ jobs:
           echo "OPENSSL_LIB_DIR=C:\Program Files\OpenSSL-Win64\lib" >>$GITHUB_ENV
           echo "SSL_CERT_FILE=C:\Program Files\OpenSSL-Win64\ca\cacert.pem" >>$GITHUB_ENV
           echo "OPENSSL_ROOT_DIR=C:\Program Files\OpenSSL-Win64" >> $GITHUB_ENV
-          WINNASMVERSION='2.15.05'
-          curl -O https://www.nasm.us/pub/nasm/releasebuilds/${WINNASMVERSION}/win64/nasm-${WINNASMVERSION}-win64.zip
-          unzip nasm-${WINNASMVERSION}-win64.zip
-          echo "$GITHUB_WORKSPACE\\nasm-${WINNASMVERSION}" >> $GITHUB_PATH
           echo "OPENSSL_RUST_USE_NASM=1" >> $GITHUB_ENV
       - name: install frontend dependencies
         run: yarn install # change this to npm or pnpm depending on which one you use

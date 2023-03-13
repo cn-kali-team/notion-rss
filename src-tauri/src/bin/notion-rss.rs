@@ -35,7 +35,6 @@ async fn main() -> Result<()> {
     // add subscribe from file
     if let Some(p) = config.file {
         for f in read_file_to_feed(&p) {
-            println!("{}", f);
             match add_subscribe(f).await {
                 Ok(t) => {
                     println!("Submitted Successfully: {}.", t);
