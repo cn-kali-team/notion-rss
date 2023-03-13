@@ -133,15 +133,10 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: bash
         run: |
-          choco install make strawberryperl nsis llvm openssl --no-progress --limit-output
-          echo "CARGO_PKG_VERSION=`date +'%y.%m.%d'`" >>$GITHUB_ENV
-          echo "OPENSSL_SRC_PERL=C:/Strawberry/perl/bin/perl" >> $GITHUB_ENV
+          choco install make strawberryperl nsis nasm llvm openssl --no-progress --limit-output
+          echo "OPENSSL_SRC_PERL=C:\Strawberry\perl\bin\perl" >> $GITHUB_ENV
           echo "OPENSSL_DIR=C:\Program Files\OpenSSL-Win64" >>$GITHUB_ENV
-          echo "OPENSSL_CONF=C:\Program Files\OpenSSL-Win64\bin\openssl.cfg" >>$GITHUB_ENV
-          echo "OPENSSL_INCLUDE_DIR=C:\Program Files\OpenSSL-Win64\include" >>$GITHUB_ENV
-          echo "OPENSSL_LIB_DIR=C:\Program Files\OpenSSL-Win64\lib" >>$GITHUB_ENV
-          echo "SSL_CERT_FILE=C:\Program Files\OpenSSL-Win64\ca\cacert.pem" >>$GITHUB_ENV
-          echo "OPENSSL_ROOT_DIR=C:\Program Files\OpenSSL-Win64" >> $GITHUB_ENV
+          echo "C:\Program Files\NASM" >> $GITHUB_PATH
           echo "OPENSSL_RUST_USE_NASM=1" >> $GITHUB_ENV
       - name: install frontend dependencies
         run: yarn install # change this to npm or pnpm depending on which one you use
