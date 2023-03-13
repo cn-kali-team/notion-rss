@@ -16,10 +16,11 @@ jobs:
 
       - name: Get Github tag
         id: meta
+        shell: bash
         run: |
-          curl --silent "https://api.github.com/repos/cn-kali-team/notion-rss/releases/latest" >> latest.json
+          curl --silent "https://api.github.com/repos/cn-kali-team/notion-rss/releases/latest" > latest.json
           cat latest.json| jq -r .tag_name | xargs -I {} echo TAG={} >> $GITHUB_ENV
-          cat latest.json| jq -r jq -r '.assets[]|select(.name |startswith("notion-rss-cli_"))|select(.name |endswith("unknown-linux-musl.tar.gz")).browser_download_url' | xargs -I {} echo DOWNLOAD_URL={} >> $GITHUB_ENV
+          cat latest.json| jq -r '.assets[]|select(.name |startswith("notion-rss-cli_"))|select(.name |endswith("unknown-linux-musl.tar.gz")).browser_download_url' | xargs -I {} echo DOWNLOAD_URL={} >> $GITHUB_ENV
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
