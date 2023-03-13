@@ -202,4 +202,3 @@ jobs:
               draft: false,
               prerelease: false
             })
-    publish-docker:
