@@ -176,7 +176,7 @@ impl Default for NotionConfig {
                     }
                     Err(err) => {
                         println!("Failed to read configuration file: {}", err);
-                        std::process::exit(0);
+                        std::process::exit(1);
                     }
                 };
             }

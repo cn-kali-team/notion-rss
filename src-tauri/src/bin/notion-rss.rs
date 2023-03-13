@@ -3,6 +3,8 @@ all(not(debug_assertions), target_os = "windows"),
 windows_subsystem = "windows"
 )]
 
+use std::thread;
+use std::time::Duration;
 use anyhow::Result;
 use notion_rss::api::run_server;
 
@@ -33,8 +35,8 @@ async fn main() -> Result<()> {
     println!("{}", BANNER);
     let config = NotionConfig::default();
     // add subscribe from file
-    if let Some(p) = config.file {
-        for f in read_file_to_feed(&p) {
+    if let Some(p) = &config.file {
+        for f in read_file_to_feed(p) {
             match add_subscribe(f).await {
                 Ok(t) => {
                     println!("Submitted Successfully: {}.", t);
@@ -48,11 +50,9 @@ async fn main() -> Result<()> {
         update().await;
         #[cfg(not(feature = "cli"))]
         update(None).await;
-        std::process::exit(0);
     }
     if config.deleted {
         deleted().await;
-        std::process::exit(0);
     }
     if config.api_server.is_some() {
         #[cfg(feature = "cli")]
@@ -61,6 +61,7 @@ async fn main() -> Result<()> {
         run_server(None);
     }
     start(config).await;
+    thread::sleep(Duration::from_secs(10));
     Ok(())
 }
 

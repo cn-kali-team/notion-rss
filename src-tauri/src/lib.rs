@@ -51,7 +51,7 @@ static NOTION_RSS_PATH: Lazy<PathBuf> = Lazy::new(|| -> PathBuf {
         config_path = cp;
     } else {
         println!("Cannot create config directory{:?}", config_path);
-        std::process::exit(0);
+        std::process::exit(1);
     }
     let notion_rss = config_path.join("notion-rss");
     if !notion_rss.is_dir() || !notion_rss.exists() {
