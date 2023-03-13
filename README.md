@@ -161,3 +161,41 @@ config:
 ## Cli Mode
 
 - Command line mode using the `--cli` parameter, The default is graphical interface.
+
+## Docker
+
+- [docker](https://hub.docker.com/r/kaliteam/notion-rss)
+
+```bash
+docker run --rm -it \
+--env NR_NOTION_TOKEN=secret_xxx \
+--env NR_SOURCE_ID=8a49af58-5aa8-4420-8ee0-85b3814e1a0d \
+--env NR_ARCHIVE_ID=e8f7df1f-e332-42a8-8ada-d7bdd793cd1e \
+--env NR_API_SERVER=127.0.0.1:8080 \
+--env NR_TOKEN=2a7b648abbc89a966d2b295f4d7780f4 \
+--env NR_DAEMON="true" \
+kaliteam/notion-rss:latest
+```
+
+- use [docker-compose.yml](docker-compose.yml)
+- run `docker-compose up`
+
+```yaml
+version: '3'
+
+services:
+  notion-rss:
+    image: kaliteam/notion-rss:latest
+    ports:
+      - "9527:9527"
+    environment:
+      NR_NOTION_TOKEN: ${NR_NOTION_TOKEN}
+      NR_SOURCE_ID: ${NR_SOURCE_ID}
+      NR_ARCHIVE_ID: ${NR_ARCHIVE_ID}
+      NR_API_SERVER: ${NR_API_SERVER}
+      NR_TOKEN: ${NR_TOKEN}
+      NR_PROXY: ${NR_PROXY}
+      NR_DAEMON: ${NR_DAEMON}
+      NR_TIMEOUT: ${NR_TIMEOUT}
+      NR_HOUR: ${NR_HOUR}
+```
