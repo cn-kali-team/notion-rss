@@ -91,6 +91,10 @@ jobs:
             rust: stable
             target: aarch64-unknown-linux-gnu
     runs-on: ${{ matrix.os }}
+    env:
+      BINARY_EXTENSION: ${{ endsWith(matrix.target, '-msvc') && '.exe' || '' }}
+      STAGING: notion-rss-cli_${{ needs.create-release.outputs.release_version }}_${{ matrix.target }}
+      PATH_BINARY: ${{ github.workspace }}/target/${{ matrix.target }}/release/notion-rss-cli${{ endsWith(matrix.target, '-msvc') && '.exe' || '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -112,6 +116,12 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
+      - name: set version
+        shell: bash
+        run: |
+          sed -i -e "s/\"version\": \".*/\"version\": \"`date +'%-y.%-m.%-d'`\",/" package.json
+          sed -i -e "s/^version = .*/version = \"`date +'%-y.%-m.%-d'`\"/" Cargo.toml
+          sed -i -e "s/\"version\": \".*/\"version\": \"`date +'%-y.%-m.%-d'`\",/" src-tauri/tauri.conf.json
       - name: install dependencies (ubuntu only)
         if: matrix.os == 'ubuntu-latest'
         shell: bash
@@ -119,17 +129,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gcc-multilib xz-utils liblz4-tool libc6-dev libssl-dev musl-tools pkg-config libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
           sudo apt-get install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf
-          sed -i -e "s/\"version\": \".*/\"version\": \"`date +'%-y.%-m.%-d'`\",/" package.json
-          sed -i -e "s/^version = .*/version = \"`date +'%-y.%-m.%-d'`\"/" Cargo.toml
-          sed -i -e "s/\"version\": \".*/\"version\": \"`date +'%-y.%-m.%-d'`\",/" src-tauri/tauri.conf.json
       - name: Install packages (Windows)
         if: matrix.os == 'windows-latest'
         shell: bash
         run: |
-          choco install nsis llvm openssl --no-progress --limit-output
-          export CARGO_PKG_VERSION=`date +'%-y.%-m.%-d'`
-          sed -i -e "s/\"version\": \".*/\"version\": \"`date +'%-y.%-m.%-d'`\",/" package.json
-          sed -i -e "s/\"version\": \".*/\"version\": \"`date +'%-y.%-m.%-d'`\",/" src-tauri/tauri.conf.json
+          choco install strawberryperl nsis llvm openssl --no-progress --limit-output
+          echo "C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin" >> $GITHUB_PATH
           echo "CARGO_PKG_VERSION=`date +'%y.%m.%d'`" >>$GITHUB_ENV
           echo "OPENSSL_DIR=C:\Program Files\OpenSSL-Win64" >>$GITHUB_ENV
           echo "OPENSSL_CONF=C:\Program Files\OpenSSL-Win64\bin\openssl.cfg" >>$GITHUB_ENV
@@ -137,11 +142,6 @@ jobs:
           echo "OPENSSL_LIB_DIR=C:\Program Files\OpenSSL-Win64\lib" >>$GITHUB_ENV
           echo "SSL_CERT_FILE=C:\Program Files\OpenSSL-Win64\ca\cacert.pem" >>$GITHUB_ENV
           echo "OPENSSL_ROOT_DIR=C:\Program Files\OpenSSL-Win64" >> $GITHUB_ENV
-      - name: Install packages (Macos)
-        if: matrix.os == 'macos-latest'
-        run: |
-          sed -i -e "s/\"version\": \".*/\"version\": \"`date +'%-y.%-m.%-d'`\",/" src-tauri/tauri.conf.json
-          sed -i -e "s/\"version\": \".*/\"version\": \"`date +'%-y.%-m.%-d'`\",/" package.json
       - name: install frontend dependencies
         run: yarn install # change this to npm or pnpm depending on which one you use
       - name: Build tauri app
@@ -154,34 +154,25 @@ jobs:
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
       - name: Build cli release binary
-        if: matrix.os != 'windows-latest'
         shell: bash
         run: |
           mv src-tauri/src/bin/notion-rss.rs src-tauri/src/bin/notion-rss-cli.rs
           cargo build --release --features cli --no-default-features --target ${{ matrix.target }} --bin=notion-rss-cli
       - name: Build archive
         shell: bash
-        if: matrix.os != 'windows-latest'
         run: |
-          staging="notion-rss-cli_${{ needs.create-release.outputs.release_version }}_${{ matrix.target }}"
-          mkdir -p "$staging"
-          cp {README.md,LICENSE} "$staging/"
+          mkdir -p ${{ env.STAGING }}/
+          cp {README.md,LICENSE} ${{ env.STAGING }}/
+          cp ${{ env.PATH_BINARY }} ${{ env.STAGING }}/
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            bin_file="target/${{ matrix.target }}/release/notion-rss-cli.exe"
-            cp "$bin_file" "$staging/"
-            cd "$staging"
-            7z a "../$staging.zip" .
-            echo "ASSET=$staging.zip" >> $GITHUB_ENV
-            echo "BIN_FILE=$bin_file" >> $GITHUB_ENV
+            cd ${{ env.STAGING }}
+            7z a "../${{ env.STAGING }}.zip" .
+            echo "ASSET=${{ env.STAGING }}.zip" >> $GITHUB_ENV
           else
-            bin_file="target/${{ matrix.target }}/release/notion-rss-cli"
-            cp "$bin_file" "$staging/"
-            tar czf "$staging.tar.gz" -C "$staging" notion-rss-cli README.md LICENSE
-            echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
-            echo "BIN_FILE=$bin_file" >> $GITHUB_ENV
+            tar czf "${{ env.STAGING }}.tar.gz" -C ${{ env.STAGING }} notion-rss-cli README.md LICENSE
+            echo "ASSET=${{ env.STAGING }}.tar.gz" >> $GITHUB_ENV
           fi
       - name: Upload cli release archive
-        if: matrix.os != 'windows-latest'
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -211,3 +202,4 @@ jobs:
               draft: false,
               prerelease: false
             })
+    publish-docker:
