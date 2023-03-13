@@ -129,11 +129,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gcc-multilib xz-utils liblz4-tool libc6-dev libssl-dev musl-tools pkg-config libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
           sudo apt-get install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf
-      - name: Install vcpkg dependencies
-        if: matrix.os == 'windows-latest'
-        run: |
-          $VCPKG_ROOT/vcpkg install openssl:x64-windows-static-md
-        shell: bash
       - name: Install packages (Windows)
         if: matrix.os == 'windows-latest'
         shell: bash
