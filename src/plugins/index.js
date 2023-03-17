@@ -5,7 +5,8 @@
  */
 
 // Plugins
-import vuetify from './vuetify'
+import {vuetify,i18n} from './vuetify'
 export function registerPlugins (app) {
   app.use(vuetify)
+  app.use(i18n)
 }

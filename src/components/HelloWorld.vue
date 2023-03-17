@@ -12,11 +12,11 @@
         <v-tabs v-model="tab" direction="vertical">
           <v-tab value="setting">
             <v-icon start> mdi-tune </v-icon>
-            Setting
+            {{ $vuetify.locale.t("tab.setting") }}
           </v-tab>
           <v-tab value="tools">
             <v-icon start> mdi-hammer-screwdriver </v-icon>
-            Tools
+            {{ $vuetify.locale.t("tab.tools") }}
           </v-tab>
         </v-tabs>
       </v-navigation-drawer>
@@ -34,7 +34,7 @@
                       :rules="[rules.required, rules.token]"
                       :type="show ? 'text' : 'password'"
                       name="token"
-                      label="Notion Api Token"
+                      :label="$vuetify.locale.t('label.notion_token')"
                       hint="secret_xxx"
                       counter
                       prepend-icon="mdi-lock"
@@ -48,7 +48,7 @@
                       :rules="[rules.required, rules.uuid]"
                       v-model="config.source_id"
                       clearable
-                      label="Source Id"
+                      :label="$vuetify.locale.t('label.source_id')"
                       hint="8a49af585aa844208ee085b3814e1a0d"
                       prepend-icon="mdi-rss"
                       @blur="$refs['config_form'].validate()"
@@ -60,7 +60,7 @@
                       :rules="[rules.required, rules.uuid]"
                       v-model="config.archive_id"
                       clearable
-                      label="Archive Id"
+                      :label="$vuetify.locale.t('label.archive_id')"
                       hint="e8f7df1fe33242a88adad7bdd793cd1e"
                       prepend-icon="mdi-archive"
                       @blur="$refs['config_form'].validate()"
@@ -72,7 +72,7 @@
                     <v-text-field
                       v-model="config.proxy"
                       clearable
-                      label="Proxy"
+                      :label="$vuetify.locale.t('label.proxy')"
                       hint="[http(s)|socks5(h)]://host:port"
                       prepend-icon="mdi-arrow-decision"
                     ></v-text-field
@@ -83,14 +83,19 @@
                     <v-switch
                       v-model="api_server_enabled"
                       color="success"
-                      :label="`Enable Api Server: ${api_server_enabled}`"
+                      :label="
+                        $vuetify.locale.t('label.api_server_enabled') +
+                        `: ${api_server_enabled}`
+                      "
                     ></v-switch>
                   </v-col>
                   <v-col cols="6">
                     <v-switch
                       v-model="config.daemon"
                       color="success"
-                      :label="`Enable Daemon: ${config.daemon}`"
+                      :label="
+                        $vuetify.locale.t('label.daemon') + ` ${config.daemon}`
+                      "
                     ></v-switch>
                   </v-col>
                 </v-row>
@@ -100,7 +105,7 @@
                       :rules="[rules.api_server]"
                       v-model="config.api_server"
                       clearable
-                      label="Api Server"
+                      :label="$vuetify.locale.t('label.api_server')"
                       hint="host:port"
                       prepend-icon="mdi-server"
                     ></v-text-field
@@ -110,13 +115,13 @@
                       :rules="[rules.api_server_token]"
                       v-model="config.token"
                       clearable
-                      label="Api Server Token"
+                      :label="$vuetify.locale.t('label.token')"
                       hint="token"
                       prepend-icon="mdi-security"
                     ></v-text-field
                   ></v-col>
                   <v-col cols="2">
-                    <v-tooltip text="Copy to RssHub">
+                    <v-tooltip :text="$vuetify.locale.t('tooltip.rsshub')">
                       <template v-slot:activator="{ props }">
                         <v-btn
                           size="x-small"
@@ -124,8 +129,9 @@
                           v-bind="props"
                           stacked
                           prepend-icon="mdi-content-copy"
-                          >Copy</v-btn
                         >
+                          {{ $vuetify.locale.t("btn.copy") }}
+                        </v-btn>
                       </template>
                     </v-tooltip>
                   </v-col>
@@ -138,13 +144,16 @@
                   color="primary"
                   :loading="update_loading"
                   @click="handle_update"
-                  >Update</v-btn
+                >
+                  {{ $vuetify.locale.t("btn.update") }}</v-btn
                 >
                 <v-spacer />
-                <v-btn text @click="$refs['config_form'].reset()">Reset</v-btn>
-                <v-btn tile type="submit" color="primary" @click="handle_save"
-                  >Save</v-btn
-                >
+                <v-btn text @click="$refs['config_form'].reset()">{{
+                  $vuetify.locale.t("btn.reset")
+                }}</v-btn>
+                <v-btn tile type="submit" color="primary" @click="handle_save">
+                  {{ $vuetify.locale.t("btn.save") }}
+                </v-btn>
               </v-card-actions>
             </v-card-text>
           </v-card>
@@ -154,7 +163,7 @@
             <v-card-text>
               <v-form ref="feed_form" v-model="valid" @submit.prevent>
                 <v-row no-gutters>
-                  <v-col cols="10">
+                  <v-col cols="8">
                     <v-text-field
                       v-model="feed_url"
                       :rules="[rules.required, rules.url]"
@@ -164,26 +173,26 @@
                       prepend-icon="mdi-rss"
                     ></v-text-field
                   ></v-col>
-                  <v-col cols="2">
-                    <v-tooltip text="Add Feed Source">
+                  <v-col>
+                    <v-tooltip :text="$vuetify.locale.t('tooltip.add_feed')">
                       <template v-slot:activator="{ props }">
                         <v-btn
-                          size="x-small"
+                          size="large"
                           @click="add_feed"
                           v-bind="props"
-                          stacked
                           :loading="update_loading"
                           prepend-icon="mdi-playlist-check"
-                          >Add</v-btn
+                        >
+                          {{ $vuetify.locale.t("btn.add") }}</v-btn
                         >
                       </template>
                     </v-tooltip>
                   </v-col>
                 </v-row>
                 <v-row>
-                  <v-col cols="10">
+                  <v-col cols="8">
                     <v-file-input
-                      label="Import source from opml file"
+                      :label="$vuetify.locale.t('label.feed_file')"
                       prepend-icon="mdi-file-xml-box"
                       show-size
                       counter
@@ -192,24 +201,24 @@
                       @change="load_file"
                     ></v-file-input>
                   </v-col>
-                  <v-col cols="2">
-                    <v-tooltip text="Import source">
+                  <v-col>
+                    <v-tooltip :text="$vuetify.locale.t('tooltip.import_feed')">
                       <template v-slot:activator="{ props }">
                         <v-btn
-                          size="x-small"
+                          size="large"
                           @click="import_feed"
                           v-bind="props"
-                          stacked
                           :loading="update_loading"
                           prepend-icon="mdi-file-import"
-                          >Import</v-btn
                         >
+                          {{ $vuetify.locale.t("btn.import") }}
+                        </v-btn>
                       </template>
                     </v-tooltip>
                   </v-col>
                 </v-row>
                 <v-row>
-                  <v-col cols="10">
+                  <v-col cols="8">
                     <v-progress-linear
                       v-show="show_progress_bar"
                       striped
@@ -218,9 +227,24 @@
                       color="primary"
                     >
                       <template v-slot:default="{ value }">
-                        <strong>Importing {{ Math.ceil(value) }}%</strong>
+                        <strong>
+                          {{ $vuetify.locale.t("text.importing") }}
+                          {{ Math.ceil(value) }}%</strong
+                        >
                       </template>
                     </v-progress-linear>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col cols="4">
+                    <v-select
+                      v-model="lang"
+                      @update:model-value="changeLocale"
+                      prepend-icon="mdi-translate"
+                      :label="$vuetify.locale.t('label.language')"
+                      :items="['en', 'zhHans']"
+                      variant="solo"
+                    ></v-select>
                   </v-col>
                 </v-row>
               </v-form>
@@ -231,7 +255,7 @@
                 :loading="update_loading"
                 prepend-icon="mdi-update"
               >
-                Update App
+                {{ $vuetify.locale.t("btn.update_app") }}
               </v-btn>
             </v-card-text>
           </v-card>
@@ -243,11 +267,12 @@
   <v-row justify="center">
     <v-dialog v-model="dialog" persistent width="auto">
       <v-card>
-        <v-card-title class="text-h5"> Restart the app? </v-card-title>
-        <v-card-text
-          >You need to restart the application after modifying the
-          configuration.</v-card-text
+        <v-card-title class="text-h5">
+          {{ $vuetify.locale.t("text.restart_app") }}</v-card-title
         >
+        <v-card-text>{{
+          $vuetify.locale.t("text.is_restart_app")
+        }}</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
@@ -256,7 +281,7 @@
             prepend-icon="mdi-cancel"
             @click="dialog = false"
           >
-            NO
+            {{ $vuetify.locale.t("btn.no") }}
           </v-btn>
           <v-btn
             color="success"
@@ -264,7 +289,7 @@
             prepend-icon="mdi-restart"
             @click="restart"
           >
-            YES
+            {{ $vuetify.locale.t("btn.yes") }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -278,7 +303,7 @@
         variant="flat"
         @click="snackbar.show = false"
       >
-        Close
+        {{ $vuetify.locale.t("btn.close") }}
       </v-btn>
     </template>
   </v-snackbar>
@@ -290,12 +315,14 @@ import { relaunch } from "@tauri-apps/api/process";
 import { appWindow } from "@tauri-apps/api/window";
 import { writeText } from "@tauri-apps/api/clipboard";
 import { checkUpdate, installUpdate } from "@tauri-apps/api/updater";
+import { useLocale } from "vuetify";
 export default {
   name: "NotionRss",
   components: {},
   props: {},
   data() {
     return {
+      lang: window.localStorage.getItem("lang") || "en",
       progress_bar: { total: 0, progress: 0 },
       show_progress_bar: false,
       show: false,
@@ -338,11 +365,21 @@ export default {
       return (this.progress_bar.progress / this.progress_bar.total) * 100;
     },
   },
+  setup() {
+    const { t } = useLocale();
+    return {
+      t,
+    };
+  },
   created() {
     this.event_listen();
     this.init_config();
   },
   methods: {
+    changeLocale(locale) {
+      this.$vuetify.locale.current = locale;
+      window.localStorage.setItem("lang", locale);
+    },
     async update_app() {
       try {
         this.update_loading = true;
@@ -526,6 +563,7 @@ export default {
         }
         await this.init_user();
       });
+      this.changeLocale(this.lang);
     },
     // 初始化用户信息
     async init_user() {
