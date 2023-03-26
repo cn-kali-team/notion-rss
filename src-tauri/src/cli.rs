@@ -183,7 +183,7 @@ impl Default for NotionConfig {
         }
         for (k, v) in std::env::vars() {
             match k.as_str() {
-                "NR_NOTION_TOKEN"=> {
+                "NR_NOTION_TOKEN" => {
                     default.notion_token = Some(v);
                 }
                 "NR_API_SERVER" => {

@@ -1,12 +1,12 @@
 #![cfg_attr(
-all(not(debug_assertions), target_os = "windows"),
-windows_subsystem = "windows"
+    all(not(debug_assertions), target_os = "windows", not(feature = "cli")),
+    windows_subsystem = "windows"
 )]
 
-use std::thread;
-use std::time::Duration;
 use anyhow::Result;
 use notion_rss::api::run_server;
+use std::thread;
+use std::time::Duration;
 
 use notion_rss::cli::NotionConfig;
 use notion_rss::read_file_to_feed;
@@ -15,6 +15,8 @@ use notion_rss::rss::{add_subscribe, deleted, update};
 use notion_rss::tray::MyTray;
 #[cfg(not(feature = "cli"))]
 use notion_rss::ui::resolve_setup;
+#[cfg(not(feature = "cli"))]
+use tauri::Manager;
 
 const BANNER: &str = r#"
 ███╗   ██╗ ██████╗ ████████╗██╗ ██████╗ ███╗   ██╗      ██████╗ ███████╗███████╗
@@ -66,8 +68,15 @@ async fn main() -> Result<()> {
 }
 
 #[cfg(feature = "cli")]
-async fn start(_config: NotionConfig) {
+async fn start(config: NotionConfig) {
     update().await;
+    // Scheduled update
+    if config.daemon {
+        loop {
+            update().await;
+            thread::sleep(Duration::from_secs(60 * 60 * config.hour));
+        }
+    }
 }
 
 #[cfg(not(feature = "cli"))]
@@ -92,6 +101,7 @@ async fn start(config: NotionConfig) {
         let app = builder
             .build(tauri::generate_context!())
             .expect("error while running tauri application");
+        let w = app.app_handle().get_window("main");
         app.run(|app_handle, e| match e {
             tauri::RunEvent::ExitRequested { api, .. } => {
                 api.prevent_exit();
@@ -101,7 +111,6 @@ async fn start(config: NotionConfig) {
             }
             #[cfg(target_os = "macos")]
             tauri::RunEvent::WindowEvent { label, event, .. } => {
-                use tauri::Manager;
                 if label == "main" {
                     match event {
                         tauri::WindowEvent::CloseRequested { api, .. } => {
@@ -116,6 +125,12 @@ async fn start(config: NotionConfig) {
             }
             _ => {}
         });
+        // Scheduled update
+
+        loop {
+            update(w.clone()).await;
+            thread::sleep(Duration::from_secs(60 * 60 * config.hour));
+        }
     } else {
         update(None).await;
     }

@@ -43,8 +43,6 @@ pub mod tray;
 #[cfg(not(feature = "cli"))]
 pub mod ui;
 
-static SERVER_LOCK: Lazy<RwLock<bool>> = Lazy::new(|| -> RwLock<bool> { RwLock::new(true) });
-
 static NOTION_RSS_PATH: Lazy<PathBuf> = Lazy::new(|| -> PathBuf {
     let mut config_path = PathBuf::new();
     if let Some(cp) = dirs::config_dir() {

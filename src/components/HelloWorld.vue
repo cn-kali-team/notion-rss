@@ -68,14 +68,36 @@
                   ></v-col>
                 </v-row>
                 <v-row no-gutters>
-                  <v-col cols="12">
+                  <v-col cols="6">
                     <v-text-field
                       v-model="config.proxy"
                       clearable
                       :label="$vuetify.locale.t('label.proxy')"
                       hint="[http(s)|socks5(h)]://host:port"
                       prepend-icon="mdi-arrow-decision"
-                    ></v-text-field
+                    >
+                    </v-text-field
+                  ></v-col>
+                  <v-col cols="6">
+                    <v-slider
+                      v-model="config.hour"
+                      thumb-label="always"
+                      step="1"
+                      :hint="$vuetify.locale.t('text.scheduled')"
+                      :max="24"
+                      :min="1"
+                      :label="$vuetify.locale.t('label.scheduled')"
+                      prepend-icon="mdi-clock-outline"
+                    >
+                      <template v-slot:append>
+                        <v-text-field
+                          v-model="config.hour"
+                          type="number"
+                          style="width: 100px"
+                          density="compact"
+                          hide-details
+                          variant="outlined"
+                        ></v-text-field> </template></v-slider
                   ></v-col>
                 </v-row>
                 <v-row no-gutters>
@@ -341,6 +363,7 @@ export default {
         archive_id: "",
         proxy: undefined,
         timeout: 15,
+        hour: 4,
         thread: 5,
         api_server: undefined,
         token: undefined,

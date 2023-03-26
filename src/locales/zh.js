@@ -22,6 +22,7 @@ export default {
     notion_token: "Notion集成API的Token",
     archive_id: "文章归档的数据库ID",
     proxy: "代理",
+    scheduled: "定时",
     api_server_enabled: "是否开启API服务",
     api_server: "API的监听地址和监听端口",
     token: "API服务的Token",
@@ -36,6 +37,7 @@ export default {
   },
   text: {
     importing: "导入进度：",
+    scheduled:"每多少小时更新一次",
     restart_app: "是否重新打开应用? ",
     is_restart_app: "修改设置后必须重新启动应用才可以生效。",
   },

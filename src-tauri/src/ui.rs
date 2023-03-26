@@ -116,7 +116,7 @@ pub fn create_window(app_handle: &AppHandle) {
     #[cfg(target_os = "windows")]
     {
         match builder
-            .decorations(false)
+            .decorations(true)
             .transparent(false)
             .inner_size(1200.0, 550.0)
             .visible(false)

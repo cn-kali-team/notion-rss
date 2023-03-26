@@ -23,6 +23,7 @@ export default {
     notion_token: "Notion Api Token",
     archive_id: "Archive Id",
     proxy: "Proxy",
+    scheduled: "Scheduled",
     api_server_enabled: "Enable Api Server",
     api_server: "Api Server",
     token: "Api Server Token",
@@ -37,6 +38,7 @@ export default {
   },
   text: {
     importing: "Importing:",
+    scheduled:"Update every how many hours",
     restart_app: "Restart the app? ",
     is_restart_app:
       "You need to restart the application after modifying the configuration.",
