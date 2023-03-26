@@ -52,15 +52,15 @@ async function filter_from_database(rss_url) {
       rss_url +
       '"}}]}}',
   };
-  response = await fetch(
+  let response = await fetch(
     "https://api.notion.com/v1/databases/" + SOURCE_ID + "/query",
     options
   );
   let body = await response.json();
-  results = body.results;
-  title = null;
+  let results = body.results;
+  let title = null;
   if (results.length > 0) {
-    titles = results[0].properties.Title.title;
+    let titles = results[0].properties.Title.title;
     if (titles.length > 0) {
       title = titles[0].plain_text;
     } else {
@@ -84,31 +84,32 @@ async function create_page(rss_url) {
       rss_url +
       '"},"Enabled":{"checkbox":true}}}',
   };
-  response = await fetch("https://api.notion.com/v1/pages", options);
+  let response = await fetch("https://api.notion.com/v1/pages", options);
   let body = await response.json();
-  properties = body.properties;
-  title = null;
+  let properties = body.properties;
+  let title = null;
   if (properties.length > 0) {
-    titles = properties.Title.title;
+    let titles = properties.Title.title;
     if (titles.length > 0) {
       title = titles[0].plain_text;
+      rss_url = rss_url + title;
     } else {
-      title = "";
+      rss_url = null;
     }
   }
   return rss_url;
 }
 async function add_subscribe(searchParams) {
-  rss_url = searchParams.get("uri");
-  title = await filter_from_database(rss_url);
-  msg = "Submitted Failed: " + rss_url;
+  let rss_url = searchParams.get("uri");
+  let title = await filter_from_database(rss_url);
+  let msg = "Submitted Failed: " + rss_url;
   if (title == null) {
     rss_url = await create_page(rss_url);
     msg = "Submitted Successfully :" + rss_url;
   } else {
     msg = "The feed already exists as :" + title;
   }
-  new_pages = pages.replace("Kali-Team", msg);
+  let new_pages = pages.replace("Kali-Team", msg);
   return new_pages;
 }
 const corsHeaders = {
@@ -154,7 +155,7 @@ async function fetchAndApply(request) {
     return response;
   }
   let response;
-  err_body = pages.replace(
+  let err_body = pages.replace(
     "Kali-Team",
     "Path error, please check Token parameter."
   );
