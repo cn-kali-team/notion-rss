@@ -69,13 +69,14 @@ async fn main() -> Result<()> {
 
 #[cfg(feature = "cli")]
 async fn start(config: NotionConfig) {
-    update().await;
     // Scheduled update
-    if config.daemon {
+    if config.daemon && config.api_server.is_some() {
         loop {
             update().await;
             thread::sleep(Duration::from_secs(60 * 60 * config.hour));
         }
+    } else {
+        update().await;
     }
 }
 
@@ -102,6 +103,12 @@ async fn start(config: NotionConfig) {
             .build(tauri::generate_context!())
             .expect("error while running tauri application");
         let w = app.app_handle().get_window("main");
+        tauri::async_runtime::spawn(async move {
+            loop {
+                update(w.clone()).await;
+                thread::sleep(Duration::from_secs(60 * 60 * config.hour));
+            }
+        });
         app.run(|app_handle, e| match e {
             tauri::RunEvent::ExitRequested { api, .. } => {
                 api.prevent_exit();
@@ -126,11 +133,6 @@ async fn start(config: NotionConfig) {
             _ => {}
         });
         // Scheduled update
-
-        loop {
-            update(w.clone()).await;
-            thread::sleep(Duration::from_secs(60 * 60 * config.hour));
-        }
     } else {
         update(None).await;
     }
