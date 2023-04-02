@@ -145,7 +145,7 @@ jobs:
       - name: install frontend dependencies
         run: yarn install # change this to npm or pnpm depending on which one you use
       - name: Build tauri app
-        uses: tauri-apps/tauri-action@v0.3
+        uses: tauri-apps/tauri-action@dev
         if: matrix.platform == 'win-msvc' ||  matrix.platform == 'linux' || matrix.platform == 'macos' || matrix.platform == 'macos_aarch64'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
