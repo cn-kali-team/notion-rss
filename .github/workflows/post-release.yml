@@ -64,7 +64,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ linux, macos, win-msvc, linux-musl, linux-arm-v7, linux-aarch64 ]
+        platform: [ linux, macos, macos_aarch64, win-msvc, linux-musl, linux-arm-v7, linux-aarch64 ]
         include:
           - platform: linux
             os: ubuntu-latest
@@ -74,6 +74,10 @@ jobs:
             os: macos-latest
             rust: stable
             target: x86_64-apple-darwin
+          - platform: macos_aarch64
+            os: macos-latest
+            rust: stable
+            target: aarch64-apple-darwin
           - platform: win-msvc
             os: windows-latest
             rust: stable
@@ -142,13 +146,14 @@ jobs:
         run: yarn install # change this to npm or pnpm depending on which one you use
       - name: Build tauri app
         uses: tauri-apps/tauri-action@v0
-        if: matrix.platform == 'win-msvc' ||  matrix.platform == 'linux' || matrix.platform == 'macos'
+        if: matrix.platform == 'win-msvc' ||  matrix.platform == 'linux' || matrix.platform == 'macos' || matrix.platform == 'macos_aarch64'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
+          args: --target ${{ matrix.target }}
       - name: Build cli release binary
         shell: bash
         run: |
@@ -198,3 +203,39 @@ jobs:
               draft: false,
               prerelease: false
             })
+  docker:
+    runs-on: ubuntu-latest
+    needs:
+      - publish-release
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v3
+
+      - name: Get Github tag
+        id: meta
+        shell: bash
+        run: |
+          curl --silent "https://api.github.com/repos/cn-kali-team/notion-rss/releases/latest" > latest.json
+          cat latest.json| jq -r .tag_name | xargs -I {} echo TAG={} >> $GITHUB_OUTPUT
+          cat latest.json| jq -r '.assets[]|select(.name |startswith("notion-rss-cli_"))|select(.name |endswith("unknown-linux-musl.tar.gz")).browser_download_url' | xargs -I {} echo DOWNLOAD_URL={} >> $GITHUB_OUTPUT
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          build-args: |
+            DOWNLOAD_URL=${{ steps.meta.outputs.DOWNLOAD_URL }}
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/notion-rss:latest,${{ secrets.DOCKER_USERNAME }}/notion-rss:${{ steps.meta.outputs.TAG }}
