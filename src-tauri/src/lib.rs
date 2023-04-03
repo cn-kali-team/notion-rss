@@ -65,7 +65,13 @@ static CONFIG: Lazy<RwLock<NotionConfig>> =
 pub static NOTION_FEED: Lazy<NotionFeed> = Lazy::new(|| -> NotionFeed {
     match NotionFeed::new() {
         Ok(nf) => nf,
-        Err(_e) => NotionFeed::default(),
+        Err(e) => {
+            if CONFIG.read().unwrap().cli {
+                println!("{}", e);
+                std::process::exit(1);
+            }
+            NotionFeed::default()
+        }
     }
 });
 
