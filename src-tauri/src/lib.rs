@@ -29,6 +29,7 @@ use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::fs::File;
 
+use select::node::Data;
 use std::io::Read;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -462,6 +463,7 @@ impl SourcePage {
         let channels = feed_rs::parser::parse(&content[..])?;
         Ok(channels)
     }
+
     pub async fn get_feed(mut self) -> Result<SourcePage> {
         match Url::parse(&self.link.clone().unwrap_or_default()) {
             Ok(link) => {
@@ -473,7 +475,7 @@ impl SourcePage {
                         // If the title is empty, update the title
                         if self.title.is_empty() {
                             if let Some(title) = feed.title {
-                                self.title = title.content;
+                                self.title = to_text(title);
                             } else {
                                 self.title = get_title(&text);
                             }
@@ -494,7 +496,7 @@ impl SourcePage {
                             }
                             // Determine whether the title already exists
                             if let Some(t) = item.title.clone() {
-                                if titles.contains(&t.content) {
+                                if titles.contains(&to_text(t)) {
                                     continue;
                                 }
                             }
@@ -739,6 +741,7 @@ impl ArchivePage {
         }
     }
 }
+
 fn parser_op(outline: &opml::Outline) -> HashSet<String> {
     let mut h = HashSet::new();
     for o in &outline.outlines {
@@ -749,6 +752,7 @@ fn parser_op(outline: &opml::Outline) -> HashSet<String> {
     }
     h
 }
+
 pub fn op_to_url(file_content: &str) -> Result<HashSet<String>> {
     let mut all = HashSet::new();
     if file_content.starts_with("<?xml") {
@@ -766,6 +770,7 @@ pub fn op_to_url(file_content: &str) -> Result<HashSet<String>> {
     }
     Ok(all)
 }
+
 pub fn read_file_to_feed(file_url: &str) -> HashSet<String> {
     if let Ok(mut f) = File::open(file_url) {
         let mut file_content = String::new();
@@ -775,4 +780,46 @@ pub fn read_file_to_feed(file_url: &str) -> HashSet<String> {
         return HashSet::from_iter(vec![u.to_string()]);
     }
     HashSet::from_iter([])
+}
+
+fn to_text(t: feed_rs::model::Text) -> String {
+    let tcs = t.content_type.subtype();
+    return match tcs.as_str() {
+        "plain" => t.content,
+        "html" => {
+            let mut text = String::new();
+            for node in Document::from(t.content.as_str()).nodes {
+                match node.data {
+                    Data::Text(txt) => {
+                        let s = txt.trim_start().trim_end();
+                        if s.is_empty() {
+                            text.push('\n');
+                        } else {
+                            text.push_str(s);
+                        }
+                    }
+                    Data::Element(_, _) => {}
+                    Data::Comment(_) => {}
+                }
+            }
+            text
+        }
+        _ => String::new(),
+    };
+}
+
+#[test]
+fn test_html2text() {
+    let html = "
+       <ul>
+         <li>Item one</li>
+         <li>Item two</li>
+         <li>Item three</li>
+       </ul>";
+    let t = feed_rs::model::Text {
+        src: None,
+        content: html.to_string(),
+        content_type: mime::TEXT_HTML,
+    };
+    to_text(t);
 }
