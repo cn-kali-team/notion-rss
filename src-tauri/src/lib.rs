@@ -65,10 +65,7 @@ static CONFIG: Lazy<RwLock<NotionConfig>> =
 pub static NOTION_FEED: Lazy<NotionFeed> = Lazy::new(|| -> NotionFeed {
     match NotionFeed::new() {
         Ok(nf) => nf,
-        Err(e) => {
-            println!("{}", e);
-            std::process::exit(1)
-        }
+        Err(_e) => NotionFeed::default(),
     }
 });
 
@@ -151,6 +148,21 @@ impl NotionFeed {
             self.proxy_client.clone()
         } else {
             self.client.clone()
+        }
+    }
+}
+
+impl Default for NotionFeed {
+    fn default() -> Self {
+        let notion_api = NotionApi::new(String::new()).expect("NotionApi");
+        Self {
+            notion: notion_api,
+            client: Default::default(),
+            proxy_client: Default::default(),
+            config: Default::default(),
+            notion_token: "".to_string(),
+            source_id: DatabaseId(Default::default()),
+            archive_id: DatabaseId(Default::default()),
         }
     }
 }
