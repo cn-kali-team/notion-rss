@@ -66,9 +66,10 @@
       "shortDescription": "Build your own RSS Feeds in Notion.",
       "targets": "all",
       "windows": {
-        "certificateThumbprint": null,
-        "digestAlgorithm": "sha256",
-        "timestampUrl": ""
+        "webviewInstallMode": {
+          "type": "embedBootstrapper"
+        },
+        "digestAlgorithm": "sha256"
       }
     },
     "security": {
@@ -77,8 +78,7 @@
     "updater": {
       "active": true,
       "endpoints": [
-        "https://github.com/cn-kali-team/notion-rss/releases/download/updater/update.json",
-        "https://hub.fastgit.xyz/cn-kali-team/notion-rss/releases/download/updater/update-proxy.json"
+        "https://github.com/cn-kali-team/notion-rss/releases/latest/download/latest.json"
       ],
       "dialog": true,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVCQzc1OTg2RkUwMDI3MkQKUldRdEp3RCtobG5IVytVVzdveGRRTWQ4U2o3RjlBcDNwV1ZreWpxbnZ0TG9JTWVseDk0Y3U2MlQK"
