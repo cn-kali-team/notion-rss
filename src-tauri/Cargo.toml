@@ -33,11 +33,12 @@ regex = { version = "1.4.5", default-features = false, features = [
 serde_yaml = "0.9"
 tauri = { version = "1.2", features = ["clipboard-all", "devtools", "global-shortcut", "icon-ico", "icon-png", "notification", "process-all", "system-tray", "updater", "window-all"], optional = true }
 actix-web = { version = "4.2.1", features = ["openssl"] }
+window-shadows = { version = "0.2.0" }
 [target.'cfg(not(target_os = "windows"))'.dependencies]
 daemonize = "0.4.1"
 [target.'cfg(target_os="windows")'.build-dependencies]
 winres = "0.1"
-window-shadows = { version = "0.2.0" }
+
 [features]
 default = ["gui"]
 # by default Tauri runs in production mode
