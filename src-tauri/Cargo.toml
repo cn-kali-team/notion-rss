@@ -35,7 +35,9 @@ tauri = { version = "1.2", features = ["clipboard-all", "devtools", "global-shor
 actix-web = { version = "4.2.1", features = ["openssl"] }
 [target.'cfg(not(target_os = "windows"))'.dependencies]
 daemonize = "0.4.1"
-
+[target.'cfg(target_os="windows")'.build-dependencies]
+winres = "0.1"
+window-shadows = { version = "0.2.0" }
 [features]
 default = ["gui"]
 # by default Tauri runs in production mode

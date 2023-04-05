@@ -115,6 +115,7 @@ pub fn create_window(app_handle: &AppHandle) {
 
     #[cfg(target_os = "windows")]
     {
+        use window_shadows::set_shadow;
         match builder
             .decorations(true)
             .transparent(false)
@@ -124,6 +125,9 @@ pub fn create_window(app_handle: &AppHandle) {
         {
             Ok(_) => {
                 let app_handle = app_handle.clone();
+                if let Some(window) = app_handle.get_window("main") {
+                    let _ = set_shadow(&window, true);
+                }
                 tauri::async_runtime::spawn(async move {
                     if let Some(window) = app_handle.get_window("main") {
                         let _ = window.show();
