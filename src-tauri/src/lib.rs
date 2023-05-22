@@ -500,12 +500,14 @@ impl SourcePage {
                         }
                         for item in feed.entries {
                             // Skip updating if it is an outdated article
+                            // 如果订阅源有最后更新时间说明已经更新过了，并且大于当前文章发布时间就跳过不添加
                             if let Some(last_time) = self.last_update_time {
                                 if let Some(published_time) = item.published {
                                     if last_time > published_time {
                                         continue;
                                     }
                                 }
+                                // 如果文章的更新时间小于订阅源最后更新时间也跳过不添加文章
                                 if let Some(updated_time) = item.updated {
                                     if last_time > updated_time {
                                         continue;
@@ -514,7 +516,9 @@ impl SourcePage {
                             }
                             // Determine whether the title already exists
                             if let Some(t) = item.title.clone() {
-                                if titles.contains(&to_text(t)) {
+                                let title = to_text(t);
+                                if titles.contains(&title) {
+                                    println!("Duplicate article already exists: {:?}", title);
                                     continue;
                                 }
                             }
@@ -529,7 +533,11 @@ impl SourcePage {
                                 },
                                 children: vec![],
                             };
-                            let _e = NOTION_FEED.notion.pages_create(page).await;
+                            if let Err(err) = NOTION_FEED.notion.pages_create(page).await {
+                                println!("Add failed: {:?}", err);
+                            } else {
+                                println!("Added successfully: {:?}", item.links.first());
+                            }
                         }
                     }
                     Err(e) => {
