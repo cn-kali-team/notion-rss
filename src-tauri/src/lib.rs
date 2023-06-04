@@ -503,13 +503,13 @@ impl SourcePage {
                             // 如果订阅源有最后更新时间说明已经更新过了，并且大于当前文章发布时间就跳过不添加
                             if let Some(last_time) = self.last_update_time {
                                 if let Some(published_time) = item.published {
-                                    if last_time > published_time {
+                                    if last_time > published_time && !titles.is_empty() {
                                         continue;
                                     }
                                 }
                                 // 如果文章的更新时间小于订阅源最后更新时间也跳过不添加文章
                                 if let Some(updated_time) = item.updated {
-                                    if last_time > updated_time {
+                                    if last_time > updated_time && !titles.is_empty(){
                                         continue;
                                     }
                                 }
